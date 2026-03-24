@@ -22,18 +22,66 @@
     "source": "Premier Marketing",
     "sheet": "PM_PARTNER_SALARY",
     "months": [
-      { "month": "April",     "gross": 75000,  "tds": 7500 },
-      { "month": "May",       "gross": 75000,  "tds": 7500 },
-      { "month": "June",      "gross": 75000,  "tds": 7500 },
-      { "month": "July",      "gross": 75000,  "tds": 7500 },
-      { "month": "August",    "gross": 83333,  "tds": 8333 },
-      { "month": "September", "gross": 83333,  "tds": 8333 },
-      { "month": "October",   "gross": 83333,  "tds": 8333 },
-      { "month": "November",  "gross": 83333,  "tds": 8333 },
-      { "month": "December",  "gross": 83333,  "tds": 8333 },
-      { "month": "January",   "gross": 83333,  "tds": 8333 },
-      { "month": "February",  "gross": 83333,  "tds": 8333 },
-      { "month": "March",     "gross": 83333,  "tds": 8333 }
+      {
+        "month": "April",
+        "gross": 75000,
+        "tds": 7500
+      },
+      {
+        "month": "May",
+        "gross": 75000,
+        "tds": 7500
+      },
+      {
+        "month": "June",
+        "gross": 75000,
+        "tds": 7500
+      },
+      {
+        "month": "July",
+        "gross": 75000,
+        "tds": 7500
+      },
+      {
+        "month": "August",
+        "gross": 83333,
+        "tds": 8333
+      },
+      {
+        "month": "September",
+        "gross": 83333,
+        "tds": 8333
+      },
+      {
+        "month": "October",
+        "gross": 83333,
+        "tds": 8333
+      },
+      {
+        "month": "November",
+        "gross": 83333,
+        "tds": 8333
+      },
+      {
+        "month": "December",
+        "gross": 83333,
+        "tds": 8333
+      },
+      {
+        "month": "January",
+        "gross": 83333,
+        "tds": 8333
+      },
+      {
+        "month": "February",
+        "gross": 83333,
+        "tds": 8333
+      },
+      {
+        "month": "March",
+        "gross": 83333,
+        "tds": 8333
+      }
     ]
   },
   "agricultureIncome": {
@@ -58,22 +106,70 @@
       "location": "Madhavaram, Chennai",
       "sheet": "PM_MADHAVARAM_SHED",
       "type": "commercial",
-      "tdsRate": 0.10,
+      "tdsRate": 0.1,
       "gstRate": 0.18,
       "emoji": "🏭",
       "months": [
-        { "month": "April",     "rent": 200000, "paid": true },
-        { "month": "May",       "rent": 200000, "paid": true },
-        { "month": "June",      "rent": 200000, "paid": true },
-        { "month": "July",      "rent": 200000, "paid": true },
-        { "month": "August",    "rent": 100000, "paid": true },
-        { "month": "September", "rent": 100000, "paid": true },
-        { "month": "October",   "rent": 100000, "paid": true },
-        { "month": "November",  "rent": 100000, "paid": true },
-        { "month": "December",  "rent": 100000, "paid": true },
-        { "month": "January",   "rent": 100000, "paid": true },
-        { "month": "February",  "rent": 100000, "paid": false },
-        { "month": "March",     "rent": 100000, "paid": false }
+        {
+          "month": "April",
+          "rent": 200000,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 200000,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 200000,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 200000,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 100000,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 100000,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 100000,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 100000,
+          "paid": true
+        },
+        {
+          "month": "December",
+          "rent": 100000,
+          "paid": true
+        },
+        {
+          "month": "January",
+          "rent": 100000,
+          "paid": true
+        },
+        {
+          "month": "February",
+          "rent": 100000,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 100000,
+          "paid": false
+        }
       ]
     },
     {
@@ -83,22 +179,70 @@
       "location": "NGO Colony, Tirunelveli",
       "sheet": "PM_TNY_TIRUNELVELY_BRANCH",
       "type": "commercial",
-      "tdsRate": 0.10,
+      "tdsRate": 0.1,
       "gstRate": 0.18,
       "emoji": "🏢",
       "months": [
-        { "month": "April",     "rent": 60000, "paid": true },
-        { "month": "May",       "rent": 60000, "paid": true },
-        { "month": "June",      "rent": 60000, "paid": true },
-        { "month": "July",      "rent": 60000, "paid": true },
-        { "month": "August",    "rent": 30000, "paid": true },
-        { "month": "September", "rent": 30000, "paid": true },
-        { "month": "October",   "rent": 30000, "paid": true },
-        { "month": "November",  "rent": 30000, "paid": true },
-        { "month": "December",  "rent": 30000, "paid": true },
-        { "month": "January",   "rent": 30000, "paid": true },
-        { "month": "February",  "rent": 30000, "paid": false },
-        { "month": "March",     "rent": 30000, "paid": false }
+        {
+          "month": "April",
+          "rent": 60000,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 60000,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 60000,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 60000,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "December",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "January",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "February",
+          "rent": 30000,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 30000,
+          "paid": false
+        }
       ]
     },
     {
@@ -108,22 +252,70 @@
       "location": "OMR, Chennai",
       "sheet": "THURAIPAKA_SMK_FLAT_H43",
       "type": "residential",
-      "tdsRate": 0.00,
-      "gstRate": 0.00,
+      "tdsRate": 0,
+      "gstRate": 0,
       "emoji": "🏠",
       "months": [
-        { "month": "April",     "rent": 30000, "paid": true },
-        { "month": "May",       "rent": 30000, "paid": true },
-        { "month": "June",      "rent": 30000, "paid": true },
-        { "month": "July",      "rent": 30000, "paid": true },
-        { "month": "August",    "rent": 30000, "paid": true },
-        { "month": "September", "rent": 30000, "paid": true },
-        { "month": "October",   "rent": 30000, "paid": true },
-        { "month": "November",  "rent": 30000, "paid": true },
-        { "month": "December",  "rent": 30000, "paid": true },
-        { "month": "January",   "rent": 30000, "paid": true },
-        { "month": "February",  "rent": 30000, "paid": false },
-        { "month": "March",     "rent": 30000, "paid": false }
+        {
+          "month": "April",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "December",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "January",
+          "rent": 30000,
+          "paid": true
+        },
+        {
+          "month": "February",
+          "rent": 30000,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 30000,
+          "paid": false
+        }
       ]
     },
     {
@@ -133,22 +325,70 @@
       "location": "SR Kandigai, Gummidipoondi",
       "sheet": "HWI_KI_BUILDING_BIG_OVEN",
       "type": "commercial",
-      "tdsRate": 0.10,
+      "tdsRate": 0.1,
       "gstRate": 0.18,
       "emoji": "🏭",
       "months": [
-        { "month": "April",     "rent": 28800, "paid": true },
-        { "month": "May",       "rent": 28800, "paid": true },
-        { "month": "June",      "rent": 28800, "paid": true },
-        { "month": "July",      "rent": 28800, "paid": true },
-        { "month": "August",    "rent": 0,     "paid": false },
-        { "month": "September", "rent": 0,     "paid": false },
-        { "month": "October",   "rent": 0,     "paid": false },
-        { "month": "November",  "rent": 0,     "paid": false },
-        { "month": "December",  "rent": 0,     "paid": false },
-        { "month": "January",   "rent": 0,     "paid": false },
-        { "month": "February",  "rent": 0,     "paid": false },
-        { "month": "March",     "rent": 0,     "paid": false }
+        {
+          "month": "April",
+          "rent": 28800,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 28800,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 28800,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 28800,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "September",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "October",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "November",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "December",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "January",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "February",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 0,
+          "paid": false
+        }
       ]
     },
     {
@@ -158,22 +398,70 @@
       "location": "NGO Colony, Tirunelveli",
       "sheet": "KHC_TNY_BRANCH_NETHRA_WSALE",
       "type": "commercial",
-      "tdsRate": 0.10,
+      "tdsRate": 0.1,
       "gstRate": 0.18,
       "emoji": "🏪",
       "months": [
-        { "month": "April",     "rent": 20000, "paid": true },
-        { "month": "May",       "rent": 20000, "paid": true },
-        { "month": "June",      "rent": 20000, "paid": true },
-        { "month": "July",      "rent": 20000, "paid": true },
-        { "month": "August",    "rent": 10000, "paid": true },
-        { "month": "September", "rent": 10000, "paid": true },
-        { "month": "October",   "rent": 10000, "paid": true },
-        { "month": "November",  "rent": 10000, "paid": true },
-        { "month": "December",  "rent": 10000, "paid": true },
-        { "month": "January",   "rent": 10000, "paid": true },
-        { "month": "February",  "rent": 10000, "paid": false },
-        { "month": "March",     "rent": 10000, "paid": false }
+        {
+          "month": "April",
+          "rent": 20000,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 20000,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 20000,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 20000,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "December",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "January",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "February",
+          "rent": 10000,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 10000,
+          "paid": false
+        }
       ]
     },
     {
@@ -183,22 +471,70 @@
       "location": "Madhavaram, Chennai",
       "sheet": "PM_MADHAVARAM_STAFF_BUILD",
       "type": "commercial",
-      "tdsRate": 0.10,
+      "tdsRate": 0.1,
       "gstRate": 0.18,
       "emoji": "🏗",
       "months": [
-        { "month": "April",     "rent": 6500, "paid": true },
-        { "month": "May",       "rent": 6500, "paid": true },
-        { "month": "June",      "rent": 6500, "paid": true },
-        { "month": "July",      "rent": 6500, "paid": true },
-        { "month": "August",    "rent": 3250, "paid": true },
-        { "month": "September", "rent": 3250, "paid": true },
-        { "month": "October",   "rent": 3250, "paid": true },
-        { "month": "November",  "rent": 3250, "paid": true },
-        { "month": "December",  "rent": 3250, "paid": true },
-        { "month": "January",   "rent": 3250, "paid": true },
-        { "month": "February",  "rent": 3250, "paid": false },
-        { "month": "March",     "rent": 3250, "paid": false }
+        {
+          "month": "April",
+          "rent": 6500,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 6500,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 6500,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 6500,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "December",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "January",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "February",
+          "rent": 3250,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 3250,
+          "paid": false
+        }
       ]
     },
     {
@@ -208,22 +544,70 @@
       "location": "Madhavaram, Chennai",
       "sheet": "KHC_MADHAVARAM_BUILD_GODOWN",
       "type": "commercial",
-      "tdsRate": 0.10,
+      "tdsRate": 0.1,
       "gstRate": 0.18,
       "emoji": "🏗",
       "months": [
-        { "month": "April",     "rent": 6500, "paid": true },
-        { "month": "May",       "rent": 6500, "paid": true },
-        { "month": "June",      "rent": 6500, "paid": true },
-        { "month": "July",      "rent": 6500, "paid": true },
-        { "month": "August",    "rent": 3250, "paid": true },
-        { "month": "September", "rent": 3250, "paid": true },
-        { "month": "October",   "rent": 3250, "paid": true },
-        { "month": "November",  "rent": 3250, "paid": true },
-        { "month": "December",  "rent": 3250, "paid": true },
-        { "month": "January",   "rent": 3250, "paid": true },
-        { "month": "February",  "rent": 3250, "paid": false },
-        { "month": "March",     "rent": 3250, "paid": false }
+        {
+          "month": "April",
+          "rent": 6500,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 6500,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 6500,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 6500,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "December",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "January",
+          "rent": 3250,
+          "paid": true
+        },
+        {
+          "month": "February",
+          "rent": 3250,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 3250,
+          "paid": false
+        }
       ]
     },
     {
@@ -233,22 +617,70 @@
       "location": "Madhavaram, Chennai",
       "sheet": "SCI_MADHAVARAM_GODOWN",
       "type": "commercial",
-      "tdsRate": 0.00,
+      "tdsRate": 0,
       "gstRate": 0.18,
       "emoji": "📦",
       "months": [
-        { "month": "April",     "rent": 10000, "paid": true },
-        { "month": "May",       "rent": 10000, "paid": true },
-        { "month": "June",      "rent": 10000, "paid": true },
-        { "month": "July",      "rent": 10000, "paid": true },
-        { "month": "August",    "rent": 0,     "paid": false },
-        { "month": "September", "rent": 0,     "paid": false },
-        { "month": "October",   "rent": 0,     "paid": false },
-        { "month": "November",  "rent": 0,     "paid": false },
-        { "month": "December",  "rent": 0,     "paid": false },
-        { "month": "January",   "rent": 0,     "paid": false },
-        { "month": "February",  "rent": 0,     "paid": false },
-        { "month": "March",     "rent": 0,     "paid": false }
+        {
+          "month": "April",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 10000,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "September",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "October",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "November",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "December",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "January",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "February",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 0,
+          "paid": false
+        }
       ]
     },
     {
@@ -258,22 +690,70 @@
       "location": "Madhavaram, Chennai",
       "sheet": "DM_MADHAVARAM_OFF",
       "type": "commercial",
-      "tdsRate": 0.00,
+      "tdsRate": 0,
       "gstRate": 0.18,
       "emoji": "🏢",
       "months": [
-        { "month": "April",     "rent": 2400, "paid": true },
-        { "month": "May",       "rent": 2400, "paid": true },
-        { "month": "June",      "rent": 2400, "paid": true },
-        { "month": "July",      "rent": 2400, "paid": true },
-        { "month": "August",    "rent": 2400, "paid": true },
-        { "month": "September", "rent": 2400, "paid": true },
-        { "month": "October",   "rent": 2400, "paid": true },
-        { "month": "November",  "rent": 2400, "paid": true },
-        { "month": "December",  "rent": 2400, "paid": true },
-        { "month": "January",   "rent": 2400, "paid": true },
-        { "month": "February",  "rent": 2400, "paid": false },
-        { "month": "March",     "rent": 2400, "paid": false }
+        {
+          "month": "April",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "December",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "January",
+          "rent": 2400,
+          "paid": true
+        },
+        {
+          "month": "February",
+          "rent": 2400,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 2400,
+          "paid": false
+        }
       ]
     },
     {
@@ -283,22 +763,70 @@
       "location": "SR Kandigai",
       "sheet": "HWI_DINNING_AUTO_SANDBLAST",
       "type": "commercial",
-      "tdsRate": 0.10,
+      "tdsRate": 0.1,
       "gstRate": 0.18,
       "emoji": "🔧",
       "months": [
-        { "month": "April",     "rent": 5400, "paid": true },
-        { "month": "May",       "rent": 5400, "paid": true },
-        { "month": "June",      "rent": 5400, "paid": true },
-        { "month": "July",      "rent": 5400, "paid": true },
-        { "month": "August",    "rent": 0,    "paid": false },
-        { "month": "September", "rent": 0,    "paid": false },
-        { "month": "October",   "rent": 0,    "paid": false },
-        { "month": "November",  "rent": 0,    "paid": false },
-        { "month": "December",  "rent": 0,    "paid": false },
-        { "month": "January",   "rent": 0,    "paid": false },
-        { "month": "February",  "rent": 0,    "paid": false },
-        { "month": "March",     "rent": 0,    "paid": false }
+        {
+          "month": "April",
+          "rent": 5400,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 5400,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 5400,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 5400,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "September",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "October",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "November",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "December",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "January",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "February",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 0,
+          "paid": false
+        }
       ]
     },
     {
@@ -308,22 +836,70 @@
       "location": "Udangudi Bazaar",
       "sheet": "UDANGUDI_SHOP1",
       "type": "commercial",
-      "tdsRate": 0.00,
+      "tdsRate": 0,
       "gstRate": 0.18,
       "emoji": "💍",
       "months": [
-        { "month": "April",     "rent": 1271.18, "paid": true },
-        { "month": "May",       "rent": 1271.18, "paid": true },
-        { "month": "June",      "rent": 1271.18, "paid": true },
-        { "month": "July",      "rent": 1271.18, "paid": true },
-        { "month": "August",    "rent": 1271.18, "paid": true },
-        { "month": "September", "rent": 1271.18, "paid": true },
-        { "month": "October",   "rent": 1271.18, "paid": true },
-        { "month": "November",  "rent": 1271.18, "paid": false },
-        { "month": "December",  "rent": 1271.18, "paid": false },
-        { "month": "January",   "rent": 1271.18, "paid": false },
-        { "month": "February",  "rent": 1271.18, "paid": false },
-        { "month": "March",     "rent": 1271.28, "paid": false }
+        {
+          "month": "April",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 1271.18,
+          "paid": false
+        },
+        {
+          "month": "December",
+          "rent": 1271.18,
+          "paid": false
+        },
+        {
+          "month": "January",
+          "rent": 1271.18,
+          "paid": false
+        },
+        {
+          "month": "February",
+          "rent": 1271.18,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 1271.28,
+          "paid": false
+        }
       ]
     },
     {
@@ -333,22 +909,70 @@
       "location": "Udangudi Bazaar",
       "sheet": "UDANDUDI_SHOP2",
       "type": "commercial",
-      "tdsRate": 0.00,
+      "tdsRate": 0,
       "gstRate": 0.18,
       "emoji": "🛒",
       "months": [
-        { "month": "April",     "rent": 1271.18, "paid": true },
-        { "month": "May",       "rent": 1271.18, "paid": true },
-        { "month": "June",      "rent": 1271.18, "paid": true },
-        { "month": "July",      "rent": 1271.18, "paid": true },
-        { "month": "August",    "rent": 1271.18, "paid": true },
-        { "month": "September", "rent": 1271.18, "paid": true },
-        { "month": "October",   "rent": 1271.18, "paid": true },
-        { "month": "November",  "rent": 1271.18, "paid": false },
-        { "month": "December",  "rent": 1271.18, "paid": false },
-        { "month": "January",   "rent": 1271.18, "paid": false },
-        { "month": "February",  "rent": 1271.18, "paid": false },
-        { "month": "March",     "rent": 1271.28, "paid": false }
+        {
+          "month": "April",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "May",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "June",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "July",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "August",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "September",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "October",
+          "rent": 1271.18,
+          "paid": true
+        },
+        {
+          "month": "November",
+          "rent": 1271.18,
+          "paid": false
+        },
+        {
+          "month": "December",
+          "rent": 1271.18,
+          "paid": false
+        },
+        {
+          "month": "January",
+          "rent": 1271.18,
+          "paid": false
+        },
+        {
+          "month": "February",
+          "rent": 1271.18,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 1271.28,
+          "paid": false
+        }
       ]
     },
     {
@@ -358,22 +982,70 @@
       "location": "SR Kandigai, Gummidipoondi",
       "sheet": "SSC_PAC_GPD_FACT_LAND",
       "type": "commercial",
-      "tdsRate": 0.10,
+      "tdsRate": 0.1,
       "gstRate": 0.18,
       "emoji": "🏞",
       "months": [
-        { "month": "April",     "rent": 0, "paid": false },
-        { "month": "May",       "rent": 0, "paid": false },
-        { "month": "June",      "rent": 0, "paid": false },
-        { "month": "July",      "rent": 0, "paid": false },
-        { "month": "August",    "rent": 0, "paid": false },
-        { "month": "September", "rent": 0, "paid": false },
-        { "month": "October",   "rent": 0, "paid": false },
-        { "month": "November",  "rent": 0, "paid": false },
-        { "month": "December",  "rent": 0, "paid": false },
-        { "month": "January",   "rent": 0, "paid": false },
-        { "month": "February",  "rent": 0, "paid": false },
-        { "month": "March",     "rent": 0, "paid": false }
+        {
+          "month": "April",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "May",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "June",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "July",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "August",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "September",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "October",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "November",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "December",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "January",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "February",
+          "rent": 0,
+          "paid": false
+        },
+        {
+          "month": "March",
+          "rent": 0,
+          "paid": false
+        }
       ]
     }
   ]
