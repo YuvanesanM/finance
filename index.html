@@ -744,9 +744,13 @@ function calc() {
   const deductions = (D.deductions.section80C||0) + (D.deductions.section80D||0) + (D.deductions.section80TTB||0) + (D.deductions.profTax||0);
   const taxableIncome = Math.max(0, grossTotal - deductions);
 
-  // Tax computation (old regime, Sr Citizen: 0-3L @0, 3-5L @5%, 5-10L @20%, >10L @30%)
-  // Using partial integration with agri income
+  // Tax computation — Old Regime, Senior Citizen (DOB 18.05.1958)
+  // Slabs: 0–3L @0%, 3–5L @5%, 5–10L @20%, >10L @30%
+  // Surcharge: 10% if total income > 50L (marginal relief may apply — verify with CA)
+  // Cess: 4% on (tax + surcharge)
+  // Agriculture: partial integration method
   const totalForRate = taxableIncome + agriGross;
+
   function taxOnAmount(inc) {
     let t = 0;
     if (inc > 1000000) t += (inc - 1000000) * 0.30;
@@ -754,12 +758,28 @@ function calc() {
     if (inc > 300000)  t += (Math.min(inc, 500000) - 300000) * 0.05;
     return t;
   }
-  const taxOnTotal = taxOnAmount(totalForRate);
-  const taxOnAgri  = taxOnAmount(agriGross);
-  let rawTax = taxOnTotal - taxOnAgri;
-  const cess = rawTax * 0.04;
-  const totalTax = rawTax + cess;
-  const balanceTax = Math.max(0, totalTax - totalTDS - salTDS);
+
+  function surchargeRate(inc) {
+    if (inc > 20000000) return 0.25; // >₹2Cr
+    if (inc > 10000000) return 0.15; // >₹1Cr
+    if (inc >  5000000) return 0.10; // >₹50L
+    return 0;
+  }
+
+  const taxOnTotal  = taxOnAmount(totalForRate);
+  const taxOnAgri   = taxOnAmount(agriGross);
+  let   rawTax      = taxOnTotal - taxOnAgri;
+
+  // Surcharge (based on total income including agri for rate purposes)
+  const surchRate   = surchargeRate(totalForRate);
+  const surcharge   = rawTax * surchRate;
+
+  // Marginal relief — if surcharge > incremental income over threshold
+  // (simplified — flag for CA if income is close to ₹50L)
+  const taxPlusSurch = rawTax + surcharge;
+  const cess         = taxPlusSurch * 0.04;
+  const totalTax     = taxPlusSurch + cess;
+  const balanceTax   = Math.max(0, totalTax - totalTDS - salTDS);
 
   // GST quarterly
   const qGST = [0,0,0,0];
@@ -783,10 +803,12 @@ function calc() {
 
   // Slab amounts for display
   const slabs = [
-    { range: 'Nil (upto ₹3,00,000)', pct: '0%', income: Math.min(taxableIncome, 300000), tax: 0, color: '#4a5568' },
-    { range: '5% (₹3L – ₹5L)',   pct: '5%',  income: Math.max(0, Math.min(taxableIncome, 500000)  - 300000), tax: Math.max(0, Math.min(taxableIncome,500000)-300000)*0.05, color: '#60a5fa' },
-    { range: '20% (₹5L – ₹10L)', pct: '20%', income: Math.max(0, Math.min(taxableIncome,1000000) - 500000), tax: Math.max(0, Math.min(taxableIncome,1000000)-500000)*0.20, color: '#fbbf24' },
-    { range: '30% (above ₹10L)',  pct: '30%', income: Math.max(0, taxableIncome - 1000000), tax: Math.max(0, taxableIncome-1000000)*0.30, color: '#f87171' }
+    { range: 'Nil (upto ₹3,00,000)',   pct: '0%',  income: Math.min(taxableIncome, 300000), tax: 0, color: '#4a5568' },
+    { range: '5% (₹3L – ₹5L)',         pct: '5%',  income: Math.max(0, Math.min(taxableIncome,500000)-300000),   tax: Math.max(0,Math.min(taxableIncome,500000)-300000)*0.05,  color: '#60a5fa' },
+    { range: '20% (₹5L – ₹10L)',       pct: '20%', income: Math.max(0, Math.min(taxableIncome,1000000)-500000),  tax: Math.max(0,Math.min(taxableIncome,1000000)-500000)*0.20, color: '#fbbf24' },
+    { range: '30% (above ₹10L)',        pct: '30%', income: Math.max(0, taxableIncome-1000000), tax: Math.max(0,taxableIncome-1000000)*0.30, color: '#f87171' },
+    { range: `Surcharge ${(surchRate*100).toFixed(0)}% (income > ₹50L)`, pct: `${(surchRate*100).toFixed(0)}%`, income: taxableIncome, tax: surcharge, color: '#c9a84c' },
+    { range: 'Education Cess 4%',       pct: '4%',  income: taxPlusSurch, tax: cess, color: '#2dd4bf' }
   ];
 
   // City groupings
@@ -805,9 +827,11 @@ function calc() {
     grossRent, totalTDS, totalGST, repair30, netHP,
     salGross, salTDS, salNet, otherInc, agriGross,
     grossTotal, deductions, taxableIncome,
-    totalTax: Math.round(totalTax * 100) / 100,
-    rawTax: Math.round(rawTax * 100) / 100,
-    cess: Math.round(cess * 100) / 100,
+    totalTax:  Math.round(totalTax  * 100) / 100,
+    rawTax:    Math.round(rawTax    * 100) / 100,
+    surcharge: Math.round(surcharge * 100) / 100,
+    surchRate,
+    cess:      Math.round(cess      * 100) / 100,
     balanceTax: Math.round(balanceTax * 100) / 100,
     qGST, qRent, monthlyTotals, slabs,
     paidMonths, totalMonths, paidAmt, pendAmt,
@@ -1084,7 +1108,8 @@ function renderTax(C) {
     <div class="dr" style="border-top:1px solid var(--border2)"><span class="dk">Gross Total Income</span><span class="dv">${inrFull(C.grossTotal)}</span></div>
     <div class="dr"><span class="dk">Less: All Deductions</span><span class="dv red">− ${inrFull(C.deductions)}</span></div>
     <div class="dr"><span class="dk">Net Taxable Income</span><span class="dv gold">${inrFull(C.taxableIncome)}</span></div>
-    <div class="dr"><span class="dk">Tax (old regime)</span><span class="dv red">${inrFull(C.rawTax)}</span></div>
+    <div class="dr"><span class="dk">Tax on income (old regime)</span><span class="dv red">${inrFull(C.rawTax)}</span></div>
+    <div class="dr"><span class="dk">Surcharge ${(C.surchRate*100).toFixed(0)}% (income > ₹50L)</span><span class="dv red">${inrFull(C.surcharge)}</span></div>
     <div class="dr"><span class="dk">Education Cess 4%</span><span class="dv red">${inrFull(C.cess)}</span></div>
     <div class="dr"><span class="dk">TDS Credit (rent + salary)</span><span class="dv green">− ${inrFull(C.allTDS)}</span></div>
     <div class="dr" style="border:none"><span class="dk">Net Advance Tax Payable</span><span class="dv" style="color:var(--amber)">${inrFull(C.balanceTax)}</span></div>`;
