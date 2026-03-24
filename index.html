@@ -227,19 +227,7 @@ td.prop-name{color:var(--text);font-weight:500}
 </style>
 </head>
 <body>
-
-<!-- LOADING -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-spinner"></div>
-  <div class="loading-text">FETCHING DATA FROM GITHUB...</div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-  </div>
-</div>
-
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 <div class="login-overlay" id="loginOverlay" style="display:none">
   <div class="login-box">
     <div class="login-mark">S</div>
@@ -479,7 +467,7 @@ td.prop-name{color:var(--text);font-weight:500}
   </div>
   <div class="g2">
     <div class="card" style="margin:0">
-      <div class="card-hd"><span class="card-title">Slab-wise Tax Calculation</span><span class="card-tag">Old Regime · Sr Citizen</span></div>
+      <div class="card-hd"><span class="card-title">Slab-wise Tax Calculation</span><span class="card-tag" id="slab-regime-tag">Old Regime · Sr Citizen</span></div>
       <div class="card-body" id="slabCalc"></div>
     </div>
     <div class="card" style="margin:0">
@@ -598,14 +586,11 @@ td.prop-name{color:var(--text);font-weight:500}
 </main>
 </div>
 
+
 <script>
-// ─── CONFIG ───────────────────────────────────────────
-// All GitHub access is via the Render proxy — no secrets in this file
 const PROXY_URL = 'https://finance-proxy-jcf5.onrender.com';
 
-// ─── AUTH STATE ───────────────────────────────────────
 let _token = sessionStorage.getItem('fin_tok') || null;
-let activeRegime = 'old'; // 'old' or 'new'
 
 function authHdr() {
   return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token };
@@ -682,10 +667,10 @@ async function loadData(forceRefresh = false) {
     D = await res.json();
     setSyncStatus('ok', 'Live · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
     render();
-    document.getElementById('loadingOverlay').style.display = 'none';
+    const _lo = document.getElementById('loadingOverlay'); if(_lo) _lo.style.display = 'none';
   } catch(e) {
     setSyncStatus('err', 'Error — retry');
-    document.getElementById('loadingOverlay').style.display = 'none';
+    const _lo = document.getElementById('loadingOverlay'); if(_lo) _lo.style.display = 'none';
     showToast('Failed to load data: ' + e.message, 'err');
   }
 }
@@ -813,22 +798,22 @@ function calc() {
   // Band taxes are direct (rate × band income)
   // Final net tax = partial integration result (agri adj shown separately)
   function slabBands(inc) {
+    // Computes income in each slab band + tax per band
+    // Called with totalForRate (taxable + agri) — the actual IT computation base
     return [
-      { label: 'Nil  (0 – ₹3L)',    rate: '0%',  bandIncome: Math.min(inc, 300000),                              tax: 0,                                                    color: '#4a5568' },
-      { label: '5%   (₹3L – ₹5L)',  rate: '5%',  bandIncome: Math.max(0, Math.min(inc,500000)  - 300000),        tax: Math.max(0, Math.min(inc,500000)-300000)  * 0.05,     color: '#60a5fa' },
-      { label: '20%  (₹5L – ₹10L)', rate: '20%', bandIncome: Math.max(0, Math.min(inc,1000000) - 500000),        tax: Math.max(0, Math.min(inc,1000000)-500000) * 0.20,     color: '#fbbf24' },
-      { label: '30%  (above ₹10L)', rate: '30%', bandIncome: Math.max(0, inc - 1000000),                         tax: Math.max(0, inc-1000000) * 0.30,                      color: '#f87171' },
+      { label: 'Nil  (0 – ₹3L)',    rate: '0%',  bandIncome: Math.min(inc, 300000),                             tax: 0,                                                   color: '#4a5568' },
+      { label: '5%   (₹3L – ₹5L)',  rate: '5%',  bandIncome: Math.max(0, Math.min(inc,500000)  - 300000),       tax: Math.max(0, Math.min(inc,500000)  - 300000) * 0.05,  color: '#60a5fa' },
+      { label: '20%  (₹5L – ₹10L)', rate: '20%', bandIncome: Math.max(0, Math.min(inc,1000000) - 500000),       tax: Math.max(0, Math.min(inc,1000000) - 500000) * 0.20,  color: '#fbbf24' },
+      { label: '30%  (above ₹10L)', rate: '30%', bandIncome: Math.max(0, inc - 1000000),                        tax: Math.max(0, inc - 1000000) * 0.30,                   color: '#f87171' },
     ];
   }
-
-
-  // Partial integration
+  // Slabs on totalForRate — the actual IT computation base
+  const slabs      = slabBands(totalForRate);
+  const agriTaxOld = taxOnAmount(agriGross);
   const taxOnTotal = taxOnAmount(totalForRate);
   const taxOnAgri  = taxOnAmount(agriGross);
   const rawTax     = taxOnTotal - taxOnAgri;
-  // Band display helpers — must come AFTER rawTax is defined
-  const bandTaxSumOld = slabBands(taxableIncome).reduce((s,b) => s + b.tax, 0);
-  const agriAdjOld    = Math.round(rawTax - bandTaxSumOld);
+
 
   // Surcharge — 10% only if total income (incl agri) > ₹50L
   const surchRate   = totalForRate > 5000000 ? (totalForRate > 10000000 ? 0.15 : 0.10) : 0;
@@ -839,8 +824,6 @@ function calc() {
   const balanceTax   = Math.max(0, totalTax - totalTDS - salTDS);
 
   // Slab bands for chart (on taxable income only, agri excluded as exempt)
-  const slabs = slabBands(taxableIncome);
-
   // GST quarterly
   const qGST = [0,0,0,0];
   const qRent = [0,0,0,0];
@@ -921,62 +904,40 @@ function calc() {
 
   // New regime slab bands for chart
   function newSlabBands(inc) {
+    // New regime slabs — on totalForRateNew
     return [
-      { label: 'Nil  (0 – ₹3L)',     rate: '0%',  bandIncome: Math.min(inc,300000),                             tax: 0,                                                    color:'#4a5568' },
-      { label: '5%   (₹3L – ₹7L)',   rate: '5%',  bandIncome: Math.max(0,Math.min(inc,700000) -300000),          tax: Math.max(0,Math.min(inc,700000)-300000)  *0.05,       color:'#60a5fa' },
-      { label: '10%  (₹7L – ₹10L)',  rate: '10%', bandIncome: Math.max(0,Math.min(inc,1000000)-700000),          tax: Math.max(0,Math.min(inc,1000000)-700000) *0.10,       color:'#818cf8' },
-      { label: '15%  (₹10L – ₹12L)', rate: '15%', bandIncome: Math.max(0,Math.min(inc,1200000)-1000000),         tax: Math.max(0,Math.min(inc,1200000)-1000000)*0.15,       color:'#fbbf24' },
-      { label: '20%  (₹12L – ₹15L)', rate: '20%', bandIncome: Math.max(0,Math.min(inc,1500000)-1200000),         tax: Math.max(0,Math.min(inc,1500000)-1200000)*0.20,       color:'#fb923c' },
-      { label: '30%  (above ₹15L)',   rate: '30%', bandIncome: Math.max(0,inc-1500000),                           tax: Math.max(0,inc-1500000)*0.30,                         color:'#f87171' },
+      { label: 'Nil  (0 – ₹3L)',     rate: '0%',  bandIncome: Math.min(inc,300000),                            tax: 0,                                                   color:'#4a5568' },
+      { label: '5%   (₹3L – ₹7L)',   rate: '5%',  bandIncome: Math.max(0,Math.min(inc,700000) -300000),         tax: Math.max(0,Math.min(inc,700000) -300000) *0.05,      color:'#60a5fa' },
+      { label: '10%  (₹7L – ₹10L)',  rate: '10%', bandIncome: Math.max(0,Math.min(inc,1000000)-700000),         tax: Math.max(0,Math.min(inc,1000000)-700000)*0.10,       color:'#818cf8' },
+      { label: '15%  (₹10L – ₹12L)', rate: '15%', bandIncome: Math.max(0,Math.min(inc,1200000)-1000000),        tax: Math.max(0,Math.min(inc,1200000)-1000000)*0.15,      color:'#fbbf24' },
+      { label: '20%  (₹12L – ₹15L)', rate: '20%', bandIncome: Math.max(0,Math.min(inc,1500000)-1200000),        tax: Math.max(0,Math.min(inc,1500000)-1200000)*0.20,      color:'#fb923c' },
+      { label: '30%  (above ₹15L)',   rate: '30%', bandIncome: Math.max(0,inc-1500000),                          tax: Math.max(0,inc-1500000)*0.30,                        color:'#f87171' },
     ];
   }
-  const slabsNew      = newSlabBands(taxableNew);
-  const bandTaxSumNew = slabsNew.reduce((s,b) => s + b.tax, 0);
-  const agriAdjNew    = Math.round(rawTaxNew - bandTaxSumNew);
-
-  // ── Capital Gains Tax (both regimes — same rates) ──────────────────
-  // Surcharge on CG capped at 15% (both 112A and 111A)
-  const ltcgTaxRate  = 0.125;   // 12.5% u/s 112A (FA 2024)
-  const stcgTaxRate  = 0.20;    // 20%   u/s 111A (FA 2024)
-  const ltcgTax      = ltcgAfterShortfall * ltcgTaxRate;
-  const stcgTax      = stcgEquity * stcgTaxRate;
-  // Surcharge on CG: capped at 15% regardless of total income
-  const cgSurchRate  = Math.min(surchRate, 0.15);
-  const ltcgSurch    = ltcgTax  * cgSurchRate;
-  const stcgSurch    = stcgTax  * cgSurchRate;
-  const cgCess       = (ltcgTax + ltcgSurch + stcgTax + stcgSurch) * 0.04;
-  const totalCGTax   = ltcgTax + ltcgSurch + stcgTax + stcgSurch + cgCess;
-
-  // Grand total tax = slab tax + CG tax
-  const grandTotalTax    = totalTax    + totalCGTax;
-  const grandBalanceTax  = Math.max(0, grandTotalTax - totalTDS - salTDS);
-
-  // New regime CG (same rates — CG rates identical in both regimes)
-  const cgSurchRateNew   = Math.min(surchRateNew, 0.15);
-  const ltcgTaxNew       = ltcgAfterShortfall * ltcgTaxRate;
-  const stcgTaxNew       = stcgEquity * stcgTaxRate;
-  const ltcgSurchNew     = ltcgTaxNew * cgSurchRateNew;
-  const stcgSurchNew     = stcgTaxNew * cgSurchRateNew;
-  const cgCessNew        = (ltcgTaxNew + ltcgSurchNew + stcgTaxNew + stcgSurchNew) * 0.04;
-  const totalCGTaxNew    = ltcgTaxNew + ltcgSurchNew + stcgTaxNew + stcgSurchNew + cgCessNew;
-  const grandTotalTaxNew = totalTaxNew + totalCGTaxNew;
-  const grandBalanceTaxNew = Math.max(0, grandTotalTaxNew - totalTDS - salTDS);
+  // New regime slabs on totalForRateNew
+  const slabsNew      = newSlabBands(totalForRateNew);
+  const agriTaxNew    = newRegimeTax(agriGross);
 
   return {
+    // ── Rental ──
     grossRent, totalTDS, totalGST, repair30, netHP,
+    // ── Income ──
     salGross, salTDS, salNet, otherInc, agriGross,
+    // ── Old regime ──
     grossTotal, deductions, taxableIncome, totalForRate,
-    taxOnTotal: Math.round(taxOnTotal),
-    taxOnAgri:  Math.round(taxOnAgri),
-    totalTax:   Math.round(totalTax  * 100) / 100,
-    rawTax:     Math.round(rawTax    * 100) / 100,
-    surcharge:  Math.round(surcharge * 100) / 100,
+    taxOnTotalOld: Math.round(slabs.reduce((s,b)=>s+b.tax,0)),
+    agriTaxOld:    Math.round(agriTaxOld),
+    totalTax:      Math.round(totalTax   * 100) / 100,
+    rawTax:        Math.round(rawTax     * 100) / 100,
+    surcharge:     Math.round(surcharge  * 100) / 100,
     surchRate,
-    cess:       Math.round(cess      * 100) / 100,
-    balanceTax: Math.round(balanceTax * 100) / 100,
+    cess:          Math.round(cess       * 100) / 100,
+    balanceTax:    Math.round(balanceTax * 100) / 100,
     slabs,
-    // New regime
+    // ── New regime ──
     grossTotalNew, taxableNew, totalForRateNew,
+    taxOnTotalNew: Math.round(slabsNew.reduce((s,b)=>s+b.tax,0)),
+    agriTaxNew:    Math.round(agriTaxNew),
     totalTaxNew:   Math.round(totalTaxNew   * 100) / 100,
     rawTaxNew:     Math.round(rawTaxNew     * 100) / 100,
     rebate87A:     Math.round(rebate87A),
@@ -985,29 +946,29 @@ function calc() {
     cessNew:       Math.round(cessNew       * 100) / 100,
     balanceTaxNew: Math.round(balanceTaxNew * 100) / 100,
     slabsNew,
-    taxSaving:     Math.round(totalTaxNew - totalTax),
-    betterRegime:  totalTax <= totalTaxNew ? 'old' : 'new',
-    bandTaxSumOld, agriAdjOld,
-    bandTaxSumNew, agriAdjNew,
-    // Capital gains
+    taxSaving:     Math.round(grandTotalTaxNew - grandTotalTax),
+    betterRegime:  grandTotalTax <= grandTotalTaxNew ? 'old' : 'new',
+    // ── Capital gains ──
     ltcgGross, ltcgExempt, ltcgTaxable, ltcgAfterShortfall,
     stcgEquity, basicExemptShortfall,
-    ltcgTax:   Math.round(ltcgTax),
-    stcgTax:   Math.round(stcgTax),
-    totalCGTax:Math.round(totalCGTax),
+    ltcgTax:         Math.round(ltcgTax),
+    stcgTax:         Math.round(stcgTax),
+    totalCGTax:      Math.round(totalCGTax),
     grandTotalTax:   Math.round(grandTotalTax   * 100) / 100,
     grandBalanceTax: Math.round(grandBalanceTax  * 100) / 100,
     grandTotalTaxNew:    Math.round(grandTotalTaxNew    * 100) / 100,
     grandBalanceTaxNew:  Math.round(grandBalanceTaxNew  * 100) / 100,
-    taxSaving: Math.round(grandTotalTaxNew - grandTotalTax),
-    qGST, qRent, monthlyTotals, slabs,
+    // ── GST / Monthly ──
+    qGST, qRent, monthlyTotals,
+    // ── Paid/unpaid stats ──
     paidMonths, totalMonths, paidAmt, pendAmt,
     collectionRate: totalMonths > 0 ? Math.round(paidMonths/totalMonths*100) : 0,
     cityMap, allTDS: totalTDS + salTDS
   };
 }
 
-// ─── FORMATTING ───────────────────────────────────────
+
+// ─── FORMATTING ──────────────────────────────────────────────────────
 function inr(n) {
   n = Math.round(n);
   if (Math.abs(n) >= 10000000) return '₹' + (n/10000000).toFixed(2) + 'Cr';
@@ -1016,7 +977,17 @@ function inr(n) {
 }
 function inrFull(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
 
-// ─── RENDER ENGINE ────────────────────────────────────
+// ─── REGIME STATE ────────────────────────────────────────────────────
+let activeRegime = 'old';
+
+function switchRegime(r) {
+  activeRegime = r;
+  document.getElementById('btn-old').classList.toggle('active', r === 'old');
+  document.getElementById('btn-new').classList.toggle('active', r === 'new');
+  renderTax(calc());
+}
+
+// ─── RENDER ENGINE ────────────────────────────────────────────────────
 function render() {
   if (!D) return;
   const C = calc();
@@ -1035,10 +1006,11 @@ function render() {
 
 function updateNavBadges(C) {
   document.getElementById('nb-income').textContent = inr(C.grossRent + C.salGross);
-  document.getElementById('nb-tax').textContent = inr(C.totalTax);
-  document.getElementById('nb-gst').textContent = inr(C.totalGST);
+  document.getElementById('nb-tax').textContent    = inr(C.grandTotalTax);
+  document.getElementById('nb-gst').textContent    = inr(C.totalGST);
 }
 
+// ─── OVERVIEW ─────────────────────────────────────────────────────────
 function renderOverview(C) {
   document.getElementById('kpi-gross').textContent    = inr(C.grossTotal);
   document.getElementById('kpi-taxable').textContent  = inr(C.taxableIncome);
@@ -1046,111 +1018,83 @@ function renderOverview(C) {
   document.getElementById('kpi-tax').textContent      = inr(C.grandTotalTax);
   document.getElementById('kpi-advance').textContent  = inr(C.grandBalanceTax);
   document.getElementById('kpi-tds').textContent      = inr(C.allTDS);
-  document.getElementById('kpi-eff-rate').textContent = (C.taxableIncome > 0 ? (C.totalTax/C.taxableIncome*100).toFixed(1) : 0) + '% eff';
-  // kpi-rental removed — grossRent shown in property panel KPI tiles
-  const ovGross = document.getElementById('ov-gross'); if(ovGross) ovGross.textContent = inrFull(C.grossTotal);
-  document.getElementById('ov-80c').textContent       = '− ' + inrFull(D.deductions.section80C);
-  const ovTax2 = document.getElementById('ov-taxable2'); if(ovTax2) ovTax2.textContent = inrFull(C.taxableIncome);
-  document.getElementById('ov-eff').textContent       = (C.taxableIncome > 0 ? (C.totalTax/C.taxableIncome*100).toFixed(1) : 0) + '%';
+  document.getElementById('kpi-eff-rate').textContent =
+    (C.taxableIncome > 0 ? (C.grandTotalTax/C.taxableIncome*100).toFixed(1) : 0) + '% eff';
 
-  // Donut
+  const ovGross = document.getElementById('ov-gross');
+  const ovTax2  = document.getElementById('ov-taxable2');
+  const ov80c   = document.getElementById('ov-80c');
+  const ovEff   = document.getElementById('ov-eff');
+  if (ovGross) ovGross.textContent   = inrFull(C.grossTotal);
+  if (ovTax2)  ovTax2.textContent    = inrFull(C.taxableIncome);
+  if (ov80c)   ov80c.textContent     = '− ' + inrFull(D.deductions.section80C);
+  if (ovEff)   ovEff.textContent     = (C.taxableIncome > 0 ? (C.grandTotalTax/C.taxableIncome*100).toFixed(1):0) + '%';
+
+  // Donut chart
   const donutData = [
-    { label: 'House Property', val: C.grossRent, color: '#c9a84c' },
-    { label: 'Partner Salary', val: C.salGross,  color: '#2dd4bf' },
-    { label: 'Agriculture',    val: C.agriGross, color: '#4ade80' },
-    { label: 'Other Income',   val: C.otherInc,  color: '#60a5fa' }
-  ];
-  renderChart('donutChart', 'doughnut', {
+    { label: 'House Property', val: C.grossRent,  color: '#c9a84c' },
+    { label: 'Partner Salary', val: C.salGross,   color: '#2dd4bf' },
+    { label: 'Agriculture',    val: C.agriGross,  color: '#4ade80' },
+    { label: 'LTCG',           val: C.ltcgGross,  color: '#818cf8' },
+    { label: 'STCG',           val: C.stcgEquity, color: '#fb923c' },
+    { label: 'Other Income',   val: C.otherInc,   color: '#60a5fa' },
+  ].filter(d => d.val > 0);
+  renderChart('donutChart','doughnut',{
     labels: donutData.map(d=>d.label),
-    datasets: [{ data: donutData.map(d=>d.val), backgroundColor: donutData.map(d=>d.color), borderWidth:0, hoverOffset:4 }]
-  }, { cutout:'68%', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+inrFull(ctx.parsed)}}} });
+    datasets:[{data:donutData.map(d=>d.val),backgroundColor:donutData.map(d=>d.color),borderWidth:0,hoverOffset:4}]
+  },{cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+inrFull(ctx.parsed)}}}});
   const dl = document.getElementById('donutLegend'); dl.innerHTML = '';
   donutData.forEach(d => { dl.innerHTML += `<span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:${d.color};flex-shrink:0"></span>${d.label}</span>`; });
 
-  // Prop bars
-  const sorted = [...D.properties].map(p => ({ name:p.name, val:p.months.reduce((s,m)=>s+m.rent,0) })).sort((a,b)=>b.val-a.val).slice(0,6);
-  const maxV = sorted[0]?.val || 1;
-  const pb = document.getElementById('propBars'); pb.innerHTML = '';
-  sorted.forEach(p => { pb.innerHTML += `<div class="pb-wrap"><div class="pb-hd"><span class="pb-name" style="font-size:11px">${p.name}</span><span class="pb-amt">${inr(p.val)}</span></div><div class="pb-track"><div class="pb-fill" style="width:${(p.val/maxV*100).toFixed(1)}%"></div></div></div>`; });
+  // Top properties bar
+  const sorted = [...D.properties].map(p=>({name:p.emoji+' '+p.name,val:p.months.reduce((s,m)=>s+m.rent,0)})).sort((a,b)=>b.val-a.val).slice(0,6);
+  const maxV = sorted[0]?.val||1;
+  const pb = document.getElementById('propBars'); pb.innerHTML='';
+  sorted.forEach(p => { pb.innerHTML+=`<div class="pb-wrap"><div class="pb-hd"><span class="pb-name" style="font-size:11px">${p.name}</span><span class="pb-amt">${inr(p.val)}</span></div><div class="pb-track"><div class="pb-fill" style="width:${(p.val/maxV*100).toFixed(1)}%"></div></div></div>`; });
 
-  // Monthly bar
-  const madShed = D.properties[0]?.months.map(m=>m.rent) || [];
-  const tnyPM   = D.properties[1]?.months.map(m=>m.rent) || [];
-  const h43     = D.properties[2]?.months.map(m=>m.rent) || [];
-  renderChart('monthlyBar', 'bar', {
-    labels: MO,
-    datasets: [
-      { label: 'Madhavaram Shed', data: madShed, backgroundColor:'#c9a84c', stack:'s' },
-      { label: 'TNY PM',          data: tnyPM,   backgroundColor:'#2dd4bf', stack:'s' },
-      { label: 'H43 Flat',        data: h43,     backgroundColor:'#7c6caf', stack:'s' }
-    ]
-  }, {
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.y)}}},
-    scales:{x:{ticks:{color:'#4a5568',font:{size:9},maxRotation:0,autoSkip:false},grid:{display:false}},y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/1000)+'K'},grid:{color:'rgba(255,255,255,0.04)'}}}
-  });
+  // Monthly stacked bar
+  const top3 = [...D.properties].sort((a,b)=>b.months.reduce((s,m)=>s+m.rent,0)-a.months.reduce((s,m)=>s+m.rent,0)).slice(0,3);
+  const MONTHS_SHORT = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const colors = ['#c9a84c','#2dd4bf','#7c6caf'];
+  renderChart('monthlyBar','bar',{
+    labels: MONTHS_SHORT,
+    datasets: top3.map((p,i)=>({label:p.name,data:p.months.map(m=>m.rent),backgroundColor:colors[i],stack:'s'}))
+  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.y)}}},
+     scales:{x:{ticks:{color:'#4a5568',font:{size:9},maxRotation:0,autoSkip:false},grid:{display:false}},
+             y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/1000)+'K'},grid:{color:'rgba(255,255,255,0.04)'}}}});
 
-  // Tax slab bar
-  // Tax slab chart — shows INCOME in each progressive band
-  // and TAX generated from that band — two datasets side by side
-  const slabLabels = C.slabs.map(s => s.label);
-  const slabIncome = C.slabs.map(s => Math.round(s.bandIncome));
-  const slabTax    = C.slabs.map(s => Math.round(s.tax));
-  const slabColors = C.slabs.map(s => s.color);
-  const slabColorsFaded = C.slabs.map(s => s.color + '55');
-  renderChart('taxSlabBar', 'bar', {
-    labels: slabLabels,
-    datasets: [
-      {
-        label: 'Income in band',
-        data: slabIncome,
-        backgroundColor: slabColorsFaded,
-        borderColor: slabColors,
-        borderWidth: 1,
-        borderRadius: 4,
-      },
-      {
-        label: 'Tax from band',
-        data: slabTax,
-        backgroundColor: slabColors,
-        borderWidth: 0,
-        borderRadius: 4,
-      }
+  // Tax slab bar (old regime default on overview)
+  const ovSlabs = C.slabs;
+  renderChart('taxSlabBar','bar',{
+    labels: ovSlabs.map(s=>s.label),
+    datasets:[
+      {label:'Income in band',data:ovSlabs.map(s=>Math.round(s.bandIncome)),backgroundColor:ovSlabs.map(s=>s.color+'55'),borderColor:ovSlabs.map(s=>s.color),borderWidth:1,borderRadius:4},
+      {label:'Tax from band', data:ovSlabs.map(s=>Math.round(s.tax)),        backgroundColor:ovSlabs.map(s=>s.color),borderWidth:0,borderRadius:4}
     ]
-  }, {
-    indexAxis: 'y',
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => ctx.dataset.label + ': ' + inrFull(ctx.parsed.x)
-        }
-      }
-    },
-    scales: {
-      x: {
-        ticks: { color:'#4a5568', font:{size:9}, callback: v => '₹'+(v/100000).toFixed(1)+'L' },
-        grid:  { color: 'rgba(255,255,255,0.04)' }
-      },
-      y: {
-        ticks: { color:'#8a9bb5', font:{size:10} },
-        grid:  { display: false }
-      }
-    }
-  });
+  },{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.x)}}},
+     scales:{x:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}},
+             y:{ticks:{color:'#8a9bb5',font:{size:10}},grid:{display:false}}}});
 }
 
+// ─── INCOME TABLE ─────────────────────────────────────────────────────
 function renderIncomeTable() {
-  const tbody = document.getElementById('incomeTableBody'); tbody.innerHTML = '';
-  let totGross=0, totGST=0, totTDS=0, totNet=0;
-  D.properties.forEach((p,idx) => {
+  const C = calc();
+  document.getElementById('is-hp').textContent    = inr(C.grossRent);
+  document.getElementById('is-sal').textContent   = inr(C.salGross);
+  document.getElementById('is-agri').textContent  = inr(C.agriGross);
+  document.getElementById('is-other').textContent = inr(C.otherInc + C.ltcgGross + C.stcgEquity);
+
+  const tbody = document.getElementById('incomeTableBody'); tbody.innerHTML='';
+  let totGross=0,totGST=0,totTDS=0,totNet=0;
+  D.properties.forEach((p,idx)=>{
     const gr  = p.months.reduce((s,m)=>s+m.rent,0);
     const gst = gr * p.gstRate;
     const tds = gr * p.tdsRate;
     const net = gr - tds;
     totGross+=gr; totGST+=gst; totTDS+=tds; totNet+=net;
-    const paidCount = p.months.filter(m=>m.rent>0&&m.paid).length;
-    const totalRent = p.months.filter(m=>m.rent>0).length;
-    const status = gr===0?'<span class="badge br">NIL</span>':totalRent===12?'<span class="badge bg">Active 12M</span>':'<span class="badge ba">'+paidCount+'/'+totalRent+' Months</span>';
+    const paidCount    = p.months.filter(m=>m.rent>0&&m.paid).length;
+    const totalRentMos = p.months.filter(m=>m.rent>0).length;
+    const status = gr===0?'<span class="badge br">NIL</span>':totalRentMos===12?'<span class="badge bg">Active 12M</span>':'<span class="badge ba">'+paidCount+'/'+totalRentMos+' Months</span>';
     const rentCell = editMode
       ? `<td class="num"><span class="editable" contenteditable="true" data-pid="${p.id}" onblur="onRentEdit(this)">${Math.round(gr).toLocaleString('en-IN')}</span></td>`
       : `<td class="num">${inrFull(gr)}</td>`;
@@ -1168,136 +1112,103 @@ function renderIncomeTable() {
   });
   tbody.innerHTML += `<tr class="total-row"><td colspan="4">Total House Property</td><td class="num">${inrFull(totGross)}</td><td class="num">${inrFull(totGST)}</td><td class="num">${inrFull(totTDS)}</td><td class="num">${inrFull(totNet)}</td><td></td></tr>`;
 
-  // Income source KPIs
-  const C = calc();
-  document.getElementById('is-hp').textContent = inr(C.grossRent);
-  document.getElementById('is-sal').textContent = inr(C.salGross);
-  document.getElementById('is-agri').textContent = inr(C.agriGross);
-  document.getElementById('is-other').textContent = inr(C.otherInc + C.ltcgGross + C.stcgEquity);
-
   // Salary card
   document.getElementById('salaryCard').innerHTML = `
-    <div class="dr"><span class="dk">Gross Salary</span><span class="dv gold">${inrFull(C.salGross)}</span></div>
+    <div class="dr"><span class="dk">Gross Salary (FY 2025-26)</span><span class="dv gold">${inrFull(C.salGross)}</span></div>
     <div class="dr"><span class="dk">TDS Deducted (10%)</span><span class="dv red">${inrFull(C.salTDS)}</span></div>
     <div class="dr"><span class="dk">Net Received</span><span class="dv green">${inrFull(C.salNet)}</span></div>
     <div class="dr" style="border:none"><span class="dk">Source</span><span class="dv">Premier Marketing</span></div>`;
 
-  // Other income card
-  const ltcgVal  = D.otherIncome.ltcgEquity  || 0;
-  const stcgVal  = D.otherIncome.stcgEquity  || 0;
+  // Other income card with LTCG/STCG
+  const ltcgVal = D.otherIncome.ltcgEquity  || 0;
+  const stcgVal = D.otherIncome.stcgEquity  || 0;
   document.getElementById('otherIncomeCard').innerHTML = `
     <div class="dr"><span class="dk">SB Account Interest</span>
       <input type="number" value="${D.otherIncome.sbInterest||0}" min="0" step="100"
         style="width:110px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 8px;color:var(--text);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-        onchange="D.otherIncome.sbInterest=parseInt(this.value)||0;render();markDirty()">
-    </div>
+        onchange="D.otherIncome.sbInterest=parseInt(this.value)||0;render();markDirty()"></div>
     <div class="dr"><span class="dk">Deposit Interest</span>
       <input type="number" value="${D.otherIncome.depositInterest||0}" min="0" step="1000"
         style="width:110px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 8px;color:var(--text);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-        onchange="D.otherIncome.depositInterest=parseInt(this.value)||0;render();markDirty()">
-    </div>
+        onchange="D.otherIncome.depositInterest=parseInt(this.value)||0;render();markDirty()"></div>
     <div class="dr"><span class="dk">Dividends / PMS</span>
-      <input type="number" value="${(D.otherIncome.dividends||0)+(D.otherIncome.pmsIncome||0)}" min="0" step="1000"
+      <input type="number" value="${D.otherIncome.dividends||0}" min="0" step="1000"
         style="width:110px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 8px;color:var(--text);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-        onchange="D.otherIncome.dividends=parseInt(this.value)||0;render();markDirty()">
-    </div>
+        onchange="D.otherIncome.dividends=parseInt(this.value)||0;render();markDirty()"></div>
     <div style="border-top:1px solid var(--border2);margin:10px 0 8px;padding-top:8px">
-      <div style="font-size:9px;font-family:var(--font-m);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">
-        Capital Gains — FA 2024 (w.e.f. 23 Jul 2024)
-      </div>
+      <div style="font-size:9px;font-family:var(--font-m);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Capital Gains — FA 2024 (w.e.f. 23 Jul 2024)</div>
       <div class="dr">
-        <div>
-          <div class="dk">LTCG — Equity / Equity MF (Sec 112A)</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">12.5% flat · ₹1.25L exempt · Holding > 12 months</div>
-        </div>
+        <div><div class="dk">LTCG — Equity / Equity MF (Sec 112A)</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">12.5% flat · ₹1.25L exempt · Holding > 12 months</div></div>
         <input type="number" value="${ltcgVal}" min="0" step="1000"
           style="width:110px;background:var(--bg4);border:1px solid rgba(201,168,76,.3);border-radius:var(--rs);padding:5px 8px;color:var(--gold);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-          onchange="D.otherIncome.ltcgEquity=parseInt(this.value)||0;render();markDirty()">
-      </div>
+          onchange="D.otherIncome.ltcgEquity=parseInt(this.value)||0;render();markDirty()"></div>
       <div class="dr" style="border:none">
-        <div>
-          <div class="dk">STCG — Equity / Equity MF (Sec 111A)</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">20% flat · No exemption · Holding ≤ 12 months</div>
-        </div>
+        <div><div class="dk">STCG — Equity / Equity MF (Sec 111A)</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">20% flat · No exemption · Holding ≤ 12 months</div></div>
         <input type="number" value="${stcgVal}" min="0" step="1000"
           style="width:110px;background:var(--bg4);border:1px solid rgba(248,113,113,.3);border-radius:var(--rs);padding:5px 8px;color:var(--red);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-          onchange="D.otherIncome.stcgEquity=parseInt(this.value)||0;render();markDirty()">
-      </div>
+          onchange="D.otherIncome.stcgEquity=parseInt(this.value)||0;render();markDirty()"></div>
     </div>
     <div class="dr" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:10px">
-      <span class="dk">Slab Income (excl CG)</span><span class="dv">${inrFull(C.otherInc)}</span>
-    </div>
+      <span class="dk">Slab Income (excl CG)</span><span class="dv">${inrFull(C.otherInc)}</span></div>
     <div class="dr" style="border:none">
-      <span class="dk">Capital Gains (gross — shown in total)</span>
-      <span class="dv" style="color:var(--gold)">${inrFull(ltcgVal+stcgVal)}</span>
-    </div>`;
+      <span class="dk">Capital Gains (gross)</span>
+      <span class="dv gold">${inrFull(ltcgVal+stcgVal)}</span></div>`;
 }
 
 function onRentEdit(el) {
-  const pid = el.dataset.pid;
-  const newVal = parseFloat(el.textContent.replace(/,/g,'')) || 0;
-  const prop = D.properties.find(p=>p.id===pid);
+  const pid    = el.dataset.pid;
+  const newVal = parseFloat(el.textContent.replace(/,/g,''))||0;
+  const prop   = D.properties.find(p=>p.id===pid);
   if (!prop) return;
-  // Distribute evenly across all months
-  const activeMonths = prop.months.filter(m=>m.rent>0).length || 12;
-  const perMonth = newVal / activeMonths;
-  prop.months.forEach(m => { if (m.rent > 0) m.rent = perMonth; });
+  const activeMos = prop.months.filter(m=>m.rent>0).length||12;
+  prop.months.forEach(m => { if (m.rent>0) m.rent = newVal/activeMos; });
+  markDirty();
+  render();
+}
+
+function markDirty() {
   pendingChanges = true;
   document.getElementById('income-edit-toolbar').style.display = 'flex';
-  const C = calc();
-  renderIncomeTable();
-  updateOverviewKPIs(C);
-  updateNavBadges(C);
+  editMode = true;
 }
 
-function updateOverviewKPIs(C) {
-  document.getElementById('kpi-taxable').textContent = inr(C.taxableIncome);
-  document.getElementById('kpi-tax').textContent = inr(C.totalTax);
-  // kpi-rental removed
-  document.getElementById('kpi-tds').textContent = inr(C.allTDS);
-}
-
+// ─── PROPERTY ─────────────────────────────────────────────────────────
 function renderProperty(C) {
   document.getElementById('hp-gross').textContent = inr(C.grossRent);
-  document.getElementById('hp-repair').textContent = inr(C.repair30);
-  document.getElementById('hp-net').textContent = inr(C.netHP);
-  document.getElementById('hp-tds').textContent = inr(C.totalTDS);
-
-  const tbody = document.getElementById('hpTableBody'); tbody.innerHTML = '';
-  let tg=0, tr30=0, tn=0, ttds=0;
-  D.properties.forEach(p => {
-    const gr = p.months.reduce((s,m)=>s+m.rent,0);
-    const r30 = gr * 0.30;
-    const net = gr - r30;
-    const tds = gr * p.tdsRate;
-    tg+=gr; tr30+=r30; tn+=net; ttds+=tds;
-    tbody.innerHTML += `<tr>
-      <td class="prop-name">${p.emoji} ${p.name}</td>
-      <td style="color:var(--text2)">${p.tenant}</td>
+  document.getElementById('hp-repair').textContent= inr(C.repair30);
+  document.getElementById('hp-net').textContent   = inr(C.netHP);
+  document.getElementById('hp-tds').textContent   = inr(C.totalTDS);
+  const tbody = document.getElementById('hpTableBody'); tbody.innerHTML='';
+  let tg=0,tr=0,tn=0,tt=0;
+  D.properties.forEach(p=>{
+    const gr=p.months.reduce((s,m)=>s+m.rent,0);
+    const r30=gr*0.30; const net=gr-r30; const tds=gr*p.tdsRate;
+    tg+=gr;tr+=r30;tn+=net;tt+=tds;
+    tbody.innerHTML+=`<tr>
+      <td class="prop-name">${p.emoji} ${p.name}</td><td style="color:var(--text2)">${p.tenant}</td>
       <td style="color:var(--text2);font-size:11px">${p.location}</td>
-      <td class="num">${inrFull(gr)}</td>
-      <td class="num" style="color:var(--red)">${inrFull(r30)}</td>
+      <td class="num">${inrFull(gr)}</td><td class="num" style="color:var(--red)">${inrFull(r30)}</td>
       <td class="num" style="color:var(--gold)">${inrFull(net)}</td>
       <td class="num" style="color:var(--green)">${tds>0?inrFull(tds):'—'}</td>
       <td>${p.type==='commercial'?'<span class="badge bb">Comm</span>':'<span class="badge bgold">Resi</span>'}</td>
     </tr>`;
   });
-  tbody.innerHTML += `<tr class="total-row"><td colspan="3">TOTAL</td><td class="num">${inrFull(tg)}</td><td class="num">${inrFull(tr30)}</td><td class="num">${inrFull(tn)}</td><td class="num">${inrFull(ttds)}</td><td></td></tr>`;
+  tbody.innerHTML+=`<tr class="total-row"><td colspan="3">TOTAL</td><td class="num">${inrFull(tg)}</td><td class="num">${inrFull(tr)}</td><td class="num">${inrFull(tn)}</td><td class="num">${inrFull(tt)}</td><td></td></tr>`;
 
-  // City donut
-  const cities = Object.entries(C.cityMap);
-  const cityColors = ['#c9a84c','#2dd4bf','#7c6caf','#60a5fa','#f87171'];
+  const cities = Object.entries(C.cityMap).sort((a,b)=>b[1]-a[1]);
+  const cc=['#c9a84c','#2dd4bf','#7c6caf','#60a5fa','#f87171'];
   renderChart('cityDonut','doughnut',{
     labels:cities.map(c=>c[0]),
-    datasets:[{data:cities.map(c=>Math.round(c[1])),backgroundColor:cityColors.slice(0,cities.length),borderWidth:0}]
+    datasets:[{data:cities.map(c=>Math.round(c[1])),backgroundColor:cc.slice(0,cities.length),borderWidth:0}]
   },{cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.label+': '+inrFull(ctx.parsed)}}}});
-  const cb = document.getElementById('cityBars'); cb.innerHTML='';
-  const maxC = Math.max(...cities.map(c=>c[1]));
-  cities.sort((a,b)=>b[1]-a[1]).forEach((c,i) => { cb.innerHTML += `<div class="pb-wrap"><div class="pb-hd"><span class="pb-name" style="font-size:11px">${c[0]}</span><span class="pb-amt">${inr(c[1])}</span></div><div class="pb-track"><div class="pb-fill" style="width:${(c[1]/maxC*100).toFixed(1)}%;background:${cityColors[i]}"></div></div></div>`; });
+  const cb=document.getElementById('cityBars'); cb.innerHTML='';
+  const maxC=Math.max(...cities.map(c=>c[1]));
+  cities.forEach((c,i)=>{cb.innerHTML+=`<div class="pb-wrap"><div class="pb-hd"><span class="pb-name" style="font-size:11px">${c[0]}</span><span class="pb-amt">${inr(c[1])}</span></div><div class="pb-track"><div class="pb-fill" style="width:${(c[1]/maxC*100).toFixed(1)}%;background:${cc[i]}"></div></div></div>`;});
 
-  // Type donut
-  const commRent = D.properties.filter(p=>p.type==='commercial').reduce((s,p)=>s+p.months.reduce((a,m)=>a+m.rent,0),0);
-  const resiRent = D.properties.filter(p=>p.type==='residential').reduce((s,p)=>s+p.months.reduce((a,m)=>a+m.rent,0),0);
+  const commRent=D.properties.filter(p=>p.type==='commercial').reduce((s,p)=>s+p.months.reduce((a,m)=>a+m.rent,0),0);
+  const resiRent=D.properties.filter(p=>p.type==='residential').reduce((s,p)=>s+p.months.reduce((a,m)=>a+m.rent,0),0);
   renderChart('typeDonut','doughnut',{
     labels:['Commercial','Residential'],
     datasets:[{data:[Math.round(commRent),Math.round(resiRent)],backgroundColor:['#2dd4bf','#c9a84c'],borderWidth:0}]
@@ -1307,67 +1218,75 @@ function renderProperty(C) {
     <div class="dr" style="border:none"><span class="dk">Residential</span><span class="dv" style="color:#c9a84c">${inrFull(resiRent)}</span></div>`;
 }
 
+// ─── MONTHLY TRACKER ──────────────────────────────────────────────────
 function renderMonthTracker(C) {
-  document.getElementById('mt-paid').textContent = C.paidMonths + '/' + C.totalMonths;
+  document.getElementById('mt-paid').textContent = C.paidMonths+'/'+C.totalMonths;
   document.getElementById('mt-recd').textContent = inr(C.paidAmt);
   document.getElementById('mt-pend').textContent = inr(C.pendAmt);
-  document.getElementById('mt-rate').textContent = C.collectionRate + '%';
-
-  const hm = document.getElementById('monthHeatmap'); hm.innerHTML = '';
-  D.properties.forEach(p => {
-    const gr = p.months.reduce((s,m)=>s+m.rent,0);
-    const row = document.createElement('div');
-    row.style.cssText = 'display:grid;grid-template-columns:180px repeat(12,1fr);gap:3px;margin-bottom:3px;align-items:center';
-    row.innerHTML = `<div style="font-size:11px;color:var(--text);padding-right:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.emoji} ${p.name}</div>`;
-    p.months.forEach((m,i) => {
-      const cls = m.rent === 0 ? 'zero' : m.paid ? 'paid' : 'unpaid';
-      const cell = document.createElement('div');
-      cell.className = 'month-cell ' + cls;
-      cell.innerHTML = `${MO[i]}<span class="tooltip">${p.name} — ${MONTHS[i]}<br>${m.rent>0?inrFull(m.rent):'No rent'} · ${m.paid?'✓ Paid':'Pending'}</span>`;
-      cell.onclick = () => { m.paid = !m.paid; renderMonthTracker(calc()); setSyncStatus('saving','Unsaved'); document.getElementById('income-edit-toolbar').style.display='flex'; pendingChanges=true; editMode=true; };
+  document.getElementById('mt-rate').textContent = C.collectionRate+'%';
+  const MONTHS_FULL = ['APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB','MAR'];
+  const MONTHS_LONG = ['April','May','June','July','August','September','October','November','December','January','February','March'];
+  const hm=document.getElementById('monthHeatmap'); hm.innerHTML='';
+  D.properties.forEach(p=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:180px repeat(12,1fr);gap:3px;margin-bottom:3px;align-items:center';
+    row.innerHTML=`<div style="font-size:11px;color:var(--text);padding-right:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.emoji} ${p.name}</div>`;
+    p.months.forEach((m,i)=>{
+      const cls=m.rent===0?'zero':m.paid?'paid':'unpaid';
+      const cell=document.createElement('div');
+      cell.className='month-cell '+cls;
+      cell.innerHTML=`${MONTHS_FULL[i]}<span class="tooltip">${p.name} — ${MONTHS_LONG[i]}<br>${m.rent>0?inrFull(m.rent):'No rent'} · ${m.paid?'✓ Paid':'Pending'}</span>`;
+      cell.onclick=()=>{ m.paid=!m.paid; renderMonthTracker(calc()); markDirty(); };
       row.appendChild(cell);
     });
     hm.appendChild(row);
   });
 }
 
-function switchRegime(r) {
-  activeRegime = r;
-  document.getElementById('btn-old').classList.toggle('active', r === 'old');
-  document.getElementById('btn-new').classList.toggle('active', r === 'new');
-  const C = calc();
-  renderTax(C);
-}
-
+// ─── TAX COMPUTATION ──────────────────────────────────────────────────
 function renderTax(C) {
-  const isNew = activeRegime === 'new';
-  const tax   = isNew ? C.totalTaxNew   : C.totalTax;
-  const bal   = isNew ? C.balanceTaxNew : C.balanceTax;
-  const ti    = isNew ? C.taxableNew    : C.taxableIncome;
-  const net   = isNew ? C.grossTotalNew : C.grossTotal;
+  const isNew  = activeRegime === 'new';
+  const tax    = isNew ? C.totalTaxNew    : C.totalTax;
+  const bal    = isNew ? C.balanceTaxNew  : C.balanceTax;
+  const ti     = isNew ? C.taxableNew     : C.taxableIncome;
+  const gtax   = isNew ? C.grandTotalTaxNew  : C.grandTotalTax;
+  const gbal   = isNew ? C.grandBalanceTaxNew: C.grandBalanceTax;
+  const forRate= isNew ? C.totalForRateNew   : C.totalForRate;
+  const rawTax = isNew ? C.rawTaxNew         : C.rawTax;
+  const agriTx = isNew ? C.agriTaxNew        : C.agriTaxOld;
+  const totTx  = isNew ? C.taxOnTotalNew     : C.taxOnTotalOld;
+  const slabs  = isNew ? C.slabsNew          : C.slabs;
+  const surch  = isNew ? C.surchargeNew      : C.surcharge;
+  const cess_v = isNew ? C.cessNew           : C.cess;
+
+  // Update tag
+  const tag = document.getElementById('slab-regime-tag');
+  if (tag) tag.textContent = isNew ? 'New Regime · Default' : 'Old Regime · Sr Citizen';
 
   // KPIs
-  document.getElementById('tc-hp').textContent       = isNew ? '(no 30% dedn in new regime)' : inr(C.netHP);
-  document.getElementById('tc-taxable').textContent  = inr(ti);
-  document.getElementById('tc-tax').textContent      = inr(isNew ? C.grandTotalTaxNew : C.grandTotalTax);
-  document.getElementById('tc-balance').textContent  = inr(isNew ? C.grandBalanceTaxNew : C.grandBalanceTax);
+  document.getElementById('tc-hp').textContent      = isNew ? '(no 30% dedn in new regime)' : inr(C.netHP);
+  document.getElementById('tc-taxable').textContent = inr(ti);
+  document.getElementById('tc-tax').textContent     = inr(gtax);
+  document.getElementById('tc-balance').textContent = inr(gbal);
 
   // Regime note
   const saving = Math.abs(C.taxSaving);
   const noteEl = document.getElementById('regime-note');
-  if (isNew) {
-    noteEl.innerHTML = `<strong>New Regime (Default from AY 2024-25)</strong> — No 30% HP deduction · No 80C/80D · Std deduction ₹75,000 on salary · Sec 87A rebate ₹60,000 if income ≤ ₹12L (Budget 2025) · ${C.rebate87A > 0 ? '<span style="color:var(--green)">87A rebate applied: ' + inrFull(C.rebate87A) + '</span>' : 'No 87A rebate (income > ₹12L)'}<br><span style="color:var(--red)">NEW REGIME is ₹${saving.toLocaleString('en-IN')} MORE expensive — OLD REGIME recommended</span>`;
-  } else {
-    noteEl.innerHTML = `<strong>Old Regime</strong> — 30% standard HP deduction (Sec 24a) · 80C ₹1.5L · 80D ₹50K (Sr) · 80TTB ₹50K (Sr) available · Must explicitly OPT OUT of new regime when filing<br><span style="color:var(--green)">OLD REGIME saves ₹${saving.toLocaleString('en-IN')} vs New Regime — RECOMMENDED for this profile</span>`;
+  if (noteEl) {
+    if (isNew) {
+      noteEl.innerHTML = `<strong>New Regime (Default from AY 2024-25)</strong> — No 30% HP deduction (Sec 24a) · No 80C/80D deductions · Std deduction ₹75,000 on salary · 6 slabs up to 30%<br>Sec 87A rebate ₹60,000 if income ≤ ₹12L (Budget 2025) — <em>not applicable here</em><br><span style="color:var(--red)">New Regime costs ₹${saving.toLocaleString('en-IN')} MORE — Old Regime recommended for this income profile</span>`;
+    } else {
+      noteEl.innerHTML = `<strong>Old Regime</strong> — 30% standard HP deduction (Sec 24a) · 80C ₹1.5L · 80D ₹50K (Sr Citizen) · 80TTB ₹50K available · Must explicitly opt out of new regime when filing ITR<br><span style="color:var(--green)">Old Regime SAVES ₹${saving.toLocaleString('en-IN')} vs New Regime — RECOMMENDED for this profile</span>`;
+    }
   }
 
-  // Slab calc
-  const slabs         = isNew ? C.slabsNew    : C.slabs;
-  const bandTaxSum    = isNew ? C.bandTaxSumNew : C.bandTaxSumOld;
-  const agriAdj       = isNew ? C.agriAdjNew   : C.agriAdjOld;
-  const totalBandIncome = slabs.reduce((s,sl) => s + sl.bandIncome, 0);
-
-  document.getElementById('slabCalc').innerHTML = slabs.map(s => `
+  // ── Slab calculation display ─────────────────────────────────────
+  const totalBandIncome = slabs.reduce((s,sl)=>s+sl.bandIncome, 0);
+  document.getElementById('slabCalc').innerHTML =
+    `<div style="font-size:10px;font-family:var(--font-m);color:var(--text3);margin-bottom:12px;letter-spacing:.05em;padding:8px 0;border-bottom:1px solid var(--border)">
+      SLABS APPLIED ON ₹${inr(forRate)} (TAXABLE ₹${inr(ti)} + AGRICULTURE ₹${inr(C.agriGross)})
+    </div>` +
+    slabs.map(s => `
     <div class="slab-row">
       <div class="slab-range-box">
         <div style="font-size:12px;color:var(--text)">${s.label}</div>
@@ -1375,98 +1294,106 @@ function renderTax(C) {
       </div>
       <div class="slab-pct" style="color:${s.color}">${s.rate}</div>
       <div class="slab-bar-wrap">
-        <div class="slab-bar">
-          <div class="slab-bar-fill" style="width:${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}%;background:${s.color}"></div>
-        </div>
-        <div style="font-size:9px;color:var(--text3);margin-top:2px">
-          ${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}% of taxable income
-        </div>
+        <div class="slab-bar"><div class="slab-bar-fill" style="width:${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}%;background:${s.color}"></div></div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px">${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}% of computation base</div>
       </div>
-      <div class="slab-amt" style="color:${s.color}">${s.tax > 0 ? inrFull(s.tax) : '—'}</div>
-    </div>`).join('') + `
-    <div style="border-top:1px solid var(--border2);margin-top:10px;padding-top:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">
-        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">SUM OF BAND TAXES</span>
-        <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">${inrFull(bandTaxSum)}</span>
+      <div class="slab-amt" style="color:${s.color}">${s.tax>0?inrFull(s.tax):'—'}</div>
+    </div>`).join('') +
+    `<div style="border-top:1px solid var(--border2);margin-top:12px;padding-top:12px">
+      <div style="display:flex;justify-content:space-between;padding:5px 0">
+        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">TAX ON ₹${inr(forRate)}</span>
+        <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">${inrFull(totTx)}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
         <div>
-          <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">AGRI INTEGRATION ADJ (Sec 10(1))</span>
-          <div style="font-size:9px;color:var(--text3);margin-top:2px">Tax on ₹${inr(isNew?C.totalForRateNew:C.totalForRate)} − Tax on agri ₹${inr(C.agriGross)} − Band sum</div>
+          <span style="font-family:var(--font-m);font-size:10px;color:var(--green)">LESS: TAX ON AGRICULTURE ₹${inr(C.agriGross)} — SEC 10(1)</span>
+          <div style="font-size:9px;color:var(--text3);margin-top:1px">Agriculture income is exempt — partial integration method</div>
         </div>
-        <span style="font-family:var(--font-m);font-size:13px;color:var(--amber)">+ ${inrFull(agriAdj)}</span>
+        <span style="font-family:var(--font-m);font-size:13px;color:var(--green)">− ${inrFull(agriTx)}</span>
       </div>
-    </div>` + `
-    <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;padding:7px 0">
         <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">BASE INCOME TAX</span>
-        <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">${inrFull(isNew ? C.rawTaxNew : C.rawTax)}</span>
+        <span style="font-family:var(--font-m);font-size:14px;color:var(--text)">${inrFull(rawTax)}</span>
       </div>
-      ${isNew && C.rebate87A > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--font-m);font-size:10px;color:var(--green)">SEC 87A REBATE</span><span style="font-family:var(--font-m);font-size:13px;color:var(--green)">− ${inrFull(C.rebate87A)}</span></div>` : ''}
-      ${(isNew ? C.surchargeNew : C.surcharge) > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--font-m);font-size:10px;color:var(--amber)">SURCHARGE ${(isNew?C.surchRateNew:C.surchRate)*100}%</span><span style="font-family:var(--font-m);font-size:13px;color:var(--amber)">${inrFull(isNew?C.surchargeNew:C.surcharge)}</span></div>` : '<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">SURCHARGE</span><span style="font-family:var(--font-m);font-size:10px;color:var(--green)">NIL (income < ₹50L)</span></div>'}
-      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">HEALTH & ED CESS 4%</span>
-        <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">${inrFull(isNew ? C.cessNew : C.cess)}</span>
+      ${isNew && C.rebate87A > 0 ? `<div style="display:flex;justify-content:space-between;padding:5px 0">
+        <span style="font-family:var(--font-m);font-size:10px;color:var(--green)">SEC 87A REBATE</span>
+        <span style="font-family:var(--font-m);font-size:13px;color:var(--green)">− ${inrFull(C.rebate87A)}</span>
+      </div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:5px 0">
+        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">SURCHARGE</span>
+        <span style="font-family:var(--font-m);font-size:11px;color:${surch>0?'var(--amber)':'var(--green)'}">
+          ${surch>0?inrFull(surch):'NIL  (income < ₹50L)'}
+        </span>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border2)">
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">HEALTH & EDUCATION CESS 4%</span>
+        <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">${inrFull(cess_v)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px">
         <span style="font-family:var(--font-m);font-size:11px;color:var(--text3)">TOTAL TAX + CESS</span>
-        <span style="font-family:var(--font-d);font-size:22px;color:var(--gold)">${inrFull(tax)}</span>
+        <span style="font-family:var(--font-d);font-size:24px;color:var(--gold)">${inrFull(tax)}</span>
       </div>
     </div>`;
 
-  // Income comp
-  document.getElementById('incomeComp').innerHTML = isNew ? `
-    <div class="dr"><span class="dk">Gross Rent (full — no 30% dedn)</span><span class="dv" style="color:var(--teal)">${inrFull(C.grossRent)}</span></div>
-    <div class="dr"><span class="dk">Salary less Std Dedn ₹75,000</span><span class="dv">${inrFull(C.salGross - 75000)}</span></div>
-    <div class="dr"><span class="dk">Other Income</span><span class="dv">${inrFull(C.otherInc)}</span></div>
-    <div class="dr" style="border-top:1px solid var(--border2)"><span class="dk">Gross Total Income</span><span class="dv">${inrFull(C.grossTotalNew)}</span></div>
-    <div class="dr"><span class="dk">Deductions (80C/D)</span><span class="dv" style="color:var(--text3)">NOT AVAILABLE</span></div>
-    <div class="dr"><span class="dk">Taxable Income</span><span class="dv gold">${inrFull(C.taxableNew)}</span></div>
-    <div class="dr"><span class="dk">Agriculture (slab rate, Sec 10(1))</span><span class="dv green">${inrFull(C.agriGross)}</span></div>
-    <div class="dr"><span class="dk">Total for rate computation</span><span class="dv">${inrFull(C.totalForRateNew)}</span></div>
-    <div class="dr"><span class="dk">Tax on ₹${inr(C.totalForRateNew)} (new slabs)</span><span class="dv red">${inrFull(C.rawTaxNew + C.rebate87A)}</span></div>
-    <div class="dr"><span class="dk">Less: Tax on agri ₹${inr(C.agriGross)}</span><span class="dv red">− ${inrFull(newRegimeTaxDisplay(C))}</span></div>
-    <div class="dr"><span class="dk">Less: Sec 87A Rebate</span><span class="dv ${C.rebate87A>0?'green':''}"> ${C.rebate87A>0?'− '+inrFull(C.rebate87A):'NIL (income > ₹12L)'}</span></div>
-    <div class="dr"><span class="dk">Health & Education Cess 4%</span><span class="dv red">${inrFull(C.cessNew)}</span></div>
-    <div class="dr"><span class="dk">TDS Credit (Rent + Salary)</span><span class="dv green">− ${inrFull(C.allTDS)}</span></div>
-    ${C.ltcgGross > 0 || C.stcgEquity > 0 ? `
-    <div style="border-top:1px solid var(--border2);margin:8px 0;padding-top:8px">
-      <div style="font-size:9px;font-family:var(--font-m);color:var(--amber);letter-spacing:.08em;margin-bottom:6px">CAPITAL GAINS TAX (same rates in both regimes)</div>
-      <div class="dr"><span class="dk">CG Tax + Surcharge + 4% Cess</span><span class="dv red">${inrFull(C.totalCGTax)}</span></div>
-    </div>` : ''}
-    <div class="dr" style="border:none"><span class="dk">Net Advance Tax Payable (incl CG)</span><span class="dv amber">${inrFull(C.grandBalanceTaxNew)}</span></div>` : `
-    <div class="dr"><span class="dk">Net HP Income (after 30% Sec 24a)</span><span class="dv" style="color:var(--teal)">${inrFull(C.netHP)}</span></div>
-    <div class="dr"><span class="dk">Partner Salary</span><span class="dv">${inrFull(C.salGross)}</span></div>
-    <div class="dr"><span class="dk">Other Income</span><span class="dv">${inrFull(C.otherInc)}</span></div>
-    <div class="dr" style="border-top:1px solid var(--border2)"><span class="dk">Gross Total Income</span><span class="dv">${inrFull(C.grossTotal)}</span></div>
-    <div class="dr"><span class="dk">Less: 80C Deductions</span><span class="dv red">− ${inrFull(C.deductions)}</span></div>
-    <div class="dr"><span class="dk">Taxable Income</span><span class="dv gold">${inrFull(C.taxableIncome)}</span></div>
-    <div class="dr"><span class="dk">Agriculture (slab rate, Sec 10(1))</span><span class="dv green">${inrFull(C.agriGross)}</span></div>
-    <div class="dr"><span class="dk">Total for rate computation</span><span class="dv">${inrFull(C.totalForRate)}</span></div>
-    <div class="dr"><span class="dk">Tax on ₹${inr(C.totalForRate)} (old slabs)</span><span class="dv red">${inrFull(C.taxOnTotal)}</span></div>
-    <div class="dr"><span class="dk">Less: Tax on agri ₹${inr(C.agriGross)}</span><span class="dv red">− ${inrFull(C.taxOnAgri)}</span></div>
-    <div class="dr"><span class="dk">Surcharge</span><span class="dv ${C.surchRate>0?'red':'green'}"> ${C.surchRate>0?inrFull(C.surcharge):'NIL (income < ₹50L)'}</span></div>
-    <div class="dr"><span class="dk">Health & Education Cess 4%</span><span class="dv red">${inrFull(C.cess)}</span></div>
-    <div class="dr"><span class="dk">TDS Credit (Rent + Salary)</span><span class="dv green">− ${inrFull(C.allTDS)}</span></div>
-    ${C.ltcgGross > 0 || C.stcgEquity > 0 ? `
-    <div style="border-top:1px solid var(--border2);margin:8px 0;padding-top:8px">
-      <div style="font-size:9px;font-family:var(--font-m);color:var(--amber);letter-spacing:.08em;margin-bottom:6px">CAPITAL GAINS TAX (Sec 112A / 111A — FA 2024)</div>
-      ${C.ltcgGross > 0 ? `
-      <div class="dr"><span class="dk">LTCG gross (Equity/MF)</span><span class="dv">${inrFull(C.ltcgGross)}</span></div>
-      <div class="dr"><span class="dk">Less: Exemption u/s 112A (₹1.25L)</span><span class="dv green">− ${inrFull(C.ltcgExempt)}</span></div>
-      <div class="dr"><span class="dk">Less: Basic exempt shortfall</span><span class="dv green">${C.basicExemptShortfall > 0 ? '− '+inrFull(C.basicExemptShortfall) : 'NIL (slab income > ₹3L)'}</span></div>
-      <div class="dr"><span class="dk">LTCG taxable @ 12.5%</span><span class="dv gold">${inrFull(C.ltcgAfterShortfall)} → Tax ${inrFull(C.ltcgTax)}</span></div>` : ''}
-      ${C.stcgEquity > 0 ? `
-      <div class="dr"><span class="dk">STCG taxable @ 20% (Equity/MF)</span><span class="dv" style="color:var(--red)">${inrFull(C.stcgEquity)} → Tax ${inrFull(C.stcgTax)}</span></div>` : ''}
-      <div class="dr"><span class="dk">CG Tax + Surcharge + 4% Cess</span><span class="dv red">${inrFull(C.totalCGTax)}</span></div>
-    </div>` : ''}
-    <div class="dr" style="border-none;padding-top:6px"><span class="dk">Net Advance Tax Payable (incl CG)</span><span class="dv amber">${inrFull(C.grandBalanceTax)}</span></div>`;
+  // ── Income computation (right column) ────────────────────────────
+  const incRows = isNew ? [
+    ['Gross Rent (full — no 30% dedn in new regime)', inrFull(C.grossRent), 'teal'],
+    ['Salary less Std Dedn ₹75,000',                  inrFull(C.salGross-75000), ''],
+    ['Other Income',                                   inrFull(C.otherInc), ''],
+    ['GROSS TOTAL INCOME',                             inrFull(C.grossTotalNew), 'gold'],
+    ['Deductions (80C/D)',                             'NOT AVAILABLE', 'text3'],
+    ['TAXABLE INCOME',                                 inrFull(C.taxableNew), 'gold'],
+    ['Agriculture — Sec 10(1) — for slab rate',       inrFull(C.agriGross), 'green'],
+    ['Total for rate computation',                     inrFull(C.totalForRateNew), ''],
+    ['Tax on ₹'+inr(C.totalForRateNew)+' (new slabs)',inrFull(C.taxOnTotalNew), 'red'],
+    ['Less: Tax on agri ₹'+inr(C.agriGross),          '− '+inrFull(C.agriTaxNew), 'green'],
+    ['Sec 87A Rebate',                                 C.rebate87A>0?'− '+inrFull(C.rebate87A):'NIL (income > ₹12L)', C.rebate87A>0?'green':'text3'],
+    ['Health & Education Cess 4%',                    inrFull(C.cessNew), 'red'],
+    ['TDS Credit (Rent + Salary)',                     '− '+inrFull(C.allTDS), 'green'],
+  ] : [
+    ['Net HP Income (after 30% Sec 24a)',              inrFull(C.netHP), 'teal'],
+    ['Partner Salary (PM)',                            inrFull(C.salGross), ''],
+    ['Other Income',                                   inrFull(C.otherInc), ''],
+    ['GROSS TOTAL INCOME',                             inrFull(C.grossTotal), 'gold'],
+    ['Less: 80C Deductions',                           '− '+inrFull(C.deductions), 'red'],
+    ['TAXABLE INCOME',                                 inrFull(C.taxableIncome), 'gold'],
+    ['Agriculture — Sec 10(1) — for slab rate',       inrFull(C.agriGross), 'green'],
+    ['Total for rate computation',                     inrFull(C.totalForRate), ''],
+    ['Tax on ₹'+inr(C.totalForRate)+' (old slabs)',   inrFull(C.taxOnTotalOld), 'red'],
+    ['Less: Tax on agri ₹'+inr(C.agriGross),          '− '+inrFull(C.agriTaxOld), 'green'],
+    ['Surcharge',                                      C.surcharge>0?inrFull(C.surcharge):'NIL (income < ₹50L)', C.surcharge>0?'red':'green'],
+    ['Health & Education Cess 4%',                    inrFull(C.cess), 'red'],
+    ['TDS Credit (Rent + Salary)',                     '− '+inrFull(C.allTDS), 'green'],
+  ];
 
-  // Regime comparison bar
-  const maxTax = Math.max(C.totalTax, C.totalTaxNew);
+  const cgRows = C.ltcgGross>0||C.stcgEquity>0 ? [
+    ['── CAPITAL GAINS TAX (Sec 112A / 111A — FA 2024) ──', '', 'amber'],
+    ...(C.ltcgGross>0?[
+      ['LTCG gross (Equity/MF)',                       inrFull(C.ltcgGross), ''],
+      ['Less: Exemption u/s 112A (₹1.25L)',            '− '+inrFull(C.ltcgExempt), 'green'],
+      ['LTCG taxable @ 12.5%',                        inrFull(C.ltcgAfterShortfall)+' → Tax '+inrFull(C.ltcgTax), 'gold'],
+    ]:[]),
+    ...(C.stcgEquity>0?[
+      ['STCG taxable @ 20% (Equity/MF)',              inrFull(C.stcgEquity)+' → Tax '+inrFull(C.stcgTax), 'red'],
+    ]:[]),
+    ['CG Tax + Cess',                                  inrFull(C.totalCGTax), 'red'],
+  ] : [];
+
+  document.getElementById('incomeComp').innerHTML =
+    [...incRows, ...cgRows].map(([k,v,c])=>`
+      <div class="dr" style="${k.startsWith('──')?'border-top:1px solid var(--border2);margin-top:6px;padding-top:8px':''}">
+        <span class="dk" style="${k.startsWith('──')?'color:var(--'+c+')':''}">${k}</span>
+        <span class="dv ${c&&!k.startsWith('──')?c:''}">${v}</span>
+      </div>`).join('') +
+    `<div class="dr" style="border-top:1px solid var(--border2);padding-top:8px;margin-top:4px;border-bottom:none">
+      <span class="dk">NET ADVANCE TAX PAYABLE</span>
+      <span class="dv amber">${inrFull(gbal)}</span>
+    </div>`;
+
+  // ── Regime comparison table ───────────────────────────────────────
   document.getElementById('optimTable').innerHTML = `
     <tr><td class="mono" style="color:var(--gold)">Old Regime</td>
-    <td>HP 30% dedn + 80C ₹1.5L + 80D ₹50K + 80TTB ₹50K</td>
+    <td>HP 30% Sec24a + 80C ₹1.5L + 80D ₹50K + 80TTB ₹50K</td>
     <td class="num">${inrFull(C.grossTotal)}</td>
     <td class="num">${inrFull(C.taxableIncome)}</td>
     <td class="num" style="color:${C.betterRegime==='old'?'var(--green)':'var(--red)'}">${inrFull(C.grandTotalTax)}</td>
@@ -1477,225 +1404,194 @@ function renderTax(C) {
     <td class="num">${inrFull(C.taxableNew)}</td>
     <td class="num" style="color:${C.betterRegime==='new'?'var(--green)':'var(--red)'}">${inrFull(C.grandTotalTaxNew)}</td>
     <td>${C.betterRegime==='new'?'<span class="badge bg">✓ BETTER</span>':'<span class="badge br">Higher Tax</span>'}</td></tr>
-    <tr class="total-row"><td colspan="4">Tax Savings (Old vs New)</td>
+    <tr class="total-row"><td colspan="4">Tax Savings (better regime vs other)</td>
     <td class="num">₹${Math.abs(C.taxSaving).toLocaleString('en-IN')}</td>
     <td><span class="badge ${C.betterRegime==='old'?'bgold':'bb'}">${C.betterRegime==='old'?'Old Regime':'New Regime'} wins</span></td></tr>`;
 
-  // Update chart for active regime
-  const slabLabels = slabs.map(s => s.label);
-  const slabIncome = slabs.map(s => Math.round(s.bandIncome));
-  const slabTax    = slabs.map(s => Math.round(s.tax));
-  const slabColors = slabs.map(s => s.color);
-  renderChart('taxSlabBar', 'bar', {
-    labels: slabLabels,
-    datasets: [
-      { label: 'Income in band', data: slabIncome, backgroundColor: slabColors.map(c=>c+'55'), borderColor: slabColors, borderWidth:1, borderRadius:4 },
-      { label: 'Tax from band',  data: slabTax,    backgroundColor: slabColors, borderWidth:0, borderRadius:4 }
+  // ── Update slab bar chart ─────────────────────────────────────────
+  renderChart('taxSlabBar','bar',{
+    labels: slabs.map(s=>s.label),
+    datasets:[
+      {label:'Income in band',data:slabs.map(s=>Math.round(s.bandIncome)),backgroundColor:slabs.map(s=>s.color+'55'),borderColor:slabs.map(s=>s.color),borderWidth:1,borderRadius:4},
+      {label:'Tax from band', data:slabs.map(s=>Math.round(s.tax)),        backgroundColor:slabs.map(s=>s.color),borderWidth:0,borderRadius:4}
     ]
-  }, {
-    indexAxis:'y',
-    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.x) }}},
-    scales:{
-      x:{ ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'}, grid:{color:'rgba(255,255,255,0.04)'} },
-      y:{ ticks:{color:'#8a9bb5',font:{size:10}}, grid:{display:false} }
-    }
-  });
+  },{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.x)}}},
+     scales:{x:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}},
+             y:{ticks:{color:'#8a9bb5',font:{size:10}},grid:{display:false}}}});
 }
 
-// Helper — new regime tax on agri for display
-function newRegimeTaxDisplay(C) {
-  function nrt(inc) {
-    let t=0;
-    if(inc>1500000)t+=(inc-1500000)*0.30;
-    if(inc>1200000)t+=(Math.min(inc,1500000)-1200000)*0.20;
-    if(inc>1000000)t+=(Math.min(inc,1200000)-1000000)*0.15;
-    if(inc> 700000)t+=(Math.min(inc,1000000)-700000)*0.10;
-    if(inc> 300000)t+=(Math.min(inc,700000)-300000)*0.05;
-    return t;
-  }
-  return Math.round(nrt(C.totalForRateNew) - C.rawTaxNew - C.rebate87A);
-}
-
+// ─── GST ──────────────────────────────────────────────────────────────
 function renderGST(C) {
-  const gstProps = D.properties.filter(p => p.gstRate > 0);
+  const gstProps = D.properties.filter(p=>p.gstRate>0);
   const totalGstRent = gstProps.reduce((s,p)=>s+p.months.reduce((a,m)=>a+m.rent,0),0);
-  const totalGstAmt  = totalGstRent * 0.18;
-  document.getElementById('gst-rent').textContent = inr(totalGstRent);
-  document.getElementById('gst-total').textContent = inr(totalGstAmt);
-  document.getElementById('gst-q1').textContent = inr(C.qGST[0]);
-  document.getElementById('gst-q2').textContent = inr(C.qGST[1]);
-
-  const tbody = document.getElementById('gstTableBody'); tbody.innerHTML = '';
-  let totR=[0,0,0,0], totG=[0,0,0,0];
-  gstProps.forEach(p => {
-    const qR=[0,0,0,0], qG=[0,0,0,0];
-    p.months.forEach((m,i) => { const q=i<3?0:i<6?1:i<9?2:3; qR[q]+=m.rent; qG[q]+=m.rent*p.gstRate; });
-    qR.forEach((v,i)=>{totR[i]+=v;totG[i]+=v*p.gstRate;});
-    const annR = qR.reduce((s,v)=>s+v,0);
-    const annG = annR * p.gstRate;
-    tbody.innerHTML += `<tr>
+  document.getElementById('gst-rent').textContent  = inr(totalGstRent);
+  document.getElementById('gst-total').textContent = inr(totalGstRent*0.18);
+  document.getElementById('gst-q1').textContent    = inr(C.qGST[0]);
+  document.getElementById('gst-q2').textContent    = inr(C.qGST[1]);
+  const tbody=document.getElementById('gstTableBody'); tbody.innerHTML='';
+  let totR=[0,0,0,0];
+  gstProps.forEach(p=>{
+    const qR=[0,0,0,0];
+    p.months.forEach((m,i)=>{const q=i<3?0:i<6?1:i<9?2:3; qR[q]+=m.rent;});
+    qR.forEach((v,i)=>totR[i]+=v);
+    const annR=qR.reduce((s,v)=>s+v,0);
+    tbody.innerHTML+=`<tr>
       <td class="prop-name">${p.emoji} ${p.name}</td><td style="color:var(--text2)">${p.tenant}</td>
-      <td class="num">${inrFull(qR[0])}</td><td class="num" style="color:var(--teal)">${inrFull(qG[0])}</td>
-      <td class="num">${inrFull(qR[1])}</td><td class="num" style="color:var(--teal)">${inrFull(qG[1])}</td>
-      <td class="num">${inrFull(qR[2])}</td><td class="num" style="color:var(--teal)">${inrFull(qG[2])}</td>
-      <td class="num">${inrFull(qR[3])}</td><td class="num" style="color:var(--teal)">${inrFull(qG[3])}</td>
-      <td class="num">${inrFull(annR)}</td><td class="num" style="color:var(--gold)">${inrFull(annG)}</td>
+      ${qR.map(v=>`<td class="num">${inrFull(v)}</td><td class="num" style="color:var(--teal)">${inrFull(v*p.gstRate)}</td>`).join('')}
+      <td class="num">${inrFull(annR)}</td><td class="num" style="color:var(--gold)">${inrFull(annR*p.gstRate)}</td>
     </tr>`;
   });
-  const totAnn=totR.reduce((s,v)=>s+v,0), totGann=totAnn*0.18;
-  tbody.innerHTML += `<tr class="total-row"><td colspan="2">Grand Total</td>${totR.map((v,i)=>`<td class="num">${inrFull(v)}</td><td class="num">${inrFull(totG[i])}</td>`).join('')}<td class="num">${inrFull(totAnn)}</td><td class="num">${inrFull(totGann)}</td></tr>`;
-
+  const totAnn=totR.reduce((s,v)=>s+v,0);
+  tbody.innerHTML+=`<tr class="total-row"><td colspan="2">Grand Total</td>${totR.map(v=>`<td class="num">${inrFull(v)}</td><td class="num">${inrFull(v*0.18)}</td>`).join('')}<td class="num">${inrFull(totAnn)}</td><td class="num">${inrFull(totAnn*0.18)}</td></tr>`;
   renderChart('gstQBar','bar',{
     labels:['Q1 Apr–Jun','Q2 Jul–Sep','Q3 Oct–Dec','Q4 Jan–Mar'],
     datasets:[
       {label:'Rent',data:C.qRent.map(v=>Math.round(v)),backgroundColor:'#c9a84c',borderRadius:4},
-      {label:'GST',data:C.qGST.map(v=>Math.round(v)),backgroundColor:'#2dd4bf',borderRadius:4}
+      {label:'GST', data:C.qGST.map(v=>Math.round(v)), backgroundColor:'#2dd4bf',borderRadius:4}
     ]
-  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.y)}}},scales:{x:{ticks:{color:'#4a5568',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}}}});
-
-  document.getElementById('gstDueDates').innerHTML = [
-    {q:'Q1 (Apr–Jun 2025)',due:'20 Jul 2025',amt:C.qGST[0],past:true},
-    {q:'Q2 (Jul–Sep 2025)',due:'20 Oct 2025',amt:C.qGST[1],past:true},
-    {q:'Q3 (Oct–Dec 2025)',due:'20 Jan 2026',amt:C.qGST[2],past:false},
-    {q:'Q4 (Jan–Mar 2026)',due:'20 Apr 2026',amt:C.qGST[3],past:false},
-  ].map(d=>`<div class="dr"><span class="dk">${d.q}<br><span style="font-size:10px;color:var(--text3)">${d.due}</span></span><span class="dv ${d.past?'amber':'green'}">${inrFull(d.amt)}</span></div>`).join('') +
+  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.y)}}},
+     scales:{x:{ticks:{color:'#4a5568',font:{size:10}},grid:{display:false}},
+             y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}}}});
+  document.getElementById('gstDueDates').innerHTML=[
+    {q:'Q1 (Apr–Jun 2025)',due:'20 Jul 2025',amt:C.qGST[0]},
+    {q:'Q2 (Jul–Sep 2025)',due:'20 Oct 2025',amt:C.qGST[1]},
+    {q:'Q3 (Oct–Dec 2025)',due:'20 Jan 2026',amt:C.qGST[2]},
+    {q:'Q4 (Jan–Mar 2026)',due:'20 Apr 2026',amt:C.qGST[3]},
+  ].map(d=>`<div class="dr"><span class="dk">${d.q}<br><span style="font-size:10px;color:var(--text3)">${d.due}</span></span><span class="dv green">${inrFull(d.amt)}</span></div>`).join('')+
   `<div class="dr" style="border:none"><span class="dk">Annual Total</span><span class="dv gold">${inrFull(C.qGST.reduce((s,v)=>s+v,0))}</span></div>`;
 }
 
+// ─── ADVANCE TAX ──────────────────────────────────────────────────────
 function renderAdvanceTax(C) {
-  const tax = C.totalTax;
-  const q1 = tax * 0.15, q2c = tax * 0.45, q3c = tax * 0.75;
-  const q2a = q2c - q1, q3a = q3c - q2c, q4a = tax - q3c;
-  document.getElementById('at-total').textContent = inr(tax);
-  document.getElementById('at-q1').textContent = inr(q1);
-  document.getElementById('at-q2').textContent = inr(q2c);
-  document.getElementById('at-q3').textContent = inr(q3c);
-
-  document.getElementById('advanceTl').innerHTML = [
-    {date:'15 JUNE 2025',label:'1st Instalment — 15%',amt:inrFull(q1),note:'Advance: 15% of estimated tax',dot:'filled'},
-    {date:'15 SEPTEMBER 2025',label:'2nd Instalment — 45% cumulative',amt:inrFull(q2a)+' additional ('+inrFull(q2c)+' total)',note:'Pay by this date to avoid interest',dot:'filled'},
-    {date:'15 DECEMBER 2025',label:'3rd Instalment — 75% cumulative',amt:inrFull(q3a)+' additional ('+inrFull(q3c)+' total)',note:'',dot:''},
-    {date:'15 MARCH 2026',label:'Final Instalment — 100%',amt:inrFull(q4a)+' balance',note:'Full tax by 31 March',dot:'grey'},
+  const tax=C.grandTotalTax;
+  const q1=tax*0.15, q2c=tax*0.45, q3c=tax*0.75;
+  const q2a=q2c-q1, q3a=q3c-q2c, q4a=tax-q3c;
+  document.getElementById('at-total').textContent=inr(tax);
+  document.getElementById('at-q1').textContent=inr(q1);
+  document.getElementById('at-q2').textContent=inr(q2c);
+  document.getElementById('at-q3').textContent=inr(q3c);
+  document.getElementById('advanceTl').innerHTML=[
+    {date:'15 JUNE 2025',    label:'1st Instalment — 15%',         amt:inrFull(q1),  note:'First advance tax due',           dot:'filled'},
+    {date:'15 SEPTEMBER 2025',label:'2nd Instalment — 45% cumul',  amt:inrFull(q2a)+' ('+inrFull(q2c)+' total)',note:'',dot:'filled'},
+    {date:'15 DECEMBER 2025', label:'3rd Instalment — 75% cumul',  amt:inrFull(q3a)+' ('+inrFull(q3c)+' total)',note:'',dot:''},
+    {date:'15 MARCH 2026',    label:'Final Instalment — 100%',      amt:inrFull(q4a)+' balance',note:'Full tax by 31 March',dot:'grey'},
   ].map(t=>`<div class="tl-item"><div class="tl-dot ${t.dot}"></div><div class="tl-date">${t.date}</div><div class="tl-label">${t.label}</div><div class="tl-amt">${t.amt}</div>${t.note?`<div class="tl-note">${t.note}</div>`:''}</div>`).join('');
-
   renderChart('atBar','bar',{
-    labels:['Jun (15%)','Sep (add 30%)','Dec (add 30%)','Mar (add 25%)'],
+    labels:['Jun (15%)','Sep (+30%)','Dec (+30%)','Mar (+25%)'],
     datasets:[{data:[Math.round(q1),Math.round(q2a),Math.round(q3a),Math.round(q4a)],backgroundColor:['#f87171','#fbbf24','#fbbf24','#4ade80'],borderRadius:4,borderWidth:0}]
-  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>inrFull(ctx.parsed.y)}}},scales:{x:{ticks:{color:'#4a5568',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}}}});
+  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>inrFull(ctx.parsed.y)}}},
+     scales:{x:{ticks:{color:'#4a5568',font:{size:10}},grid:{display:false}},
+             y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}}}});
 }
 
+// ─── DEDUCTIONS ───────────────────────────────────────────────────────
 function renderDeductions(C) {
-  const deds = [
-    {key:'section80C',  sec:'80C',  label:'LIC / PPF / ELSS / NSC / FD 5yr', max:150000, note:D.deductions.notes80C||''},
-    {key:'section80D',  sec:'80D',  label:'Medical Insurance (Sr Citizen)',     max:50000,  note:D.deductions.notes80D||''},
-    {key:'section80TTB',sec:'80TTB',label:'SB/FD Interest (Sr Citizen)',        max:50000,  note:D.deductions.notes80TTB||''},
-    {key:'profTax',     sec:'Prof Tax',label:'Professional Tax',                max:2500,   note:''},
+  const deds=[
+    {key:'section80C',  sec:'80C',   label:'LIC / PPF / ELSS / NSC / FD 5yr',    max:150000},
+    {key:'section80D',  sec:'80D',   label:'Medical Insurance (Sr Citizen max)',  max:50000},
+    {key:'section80TTB',sec:'80TTB', label:'SB/FD Interest (Sr Citizen max)',     max:50000},
+    {key:'profTax',     sec:'Prof',  label:'Professional Tax',                    max:2500},
   ];
-  document.getElementById('deductionsBody').innerHTML = deds.map(d => `
+  document.getElementById('deductionsBody').innerHTML=deds.map(d=>`
     <div class="dr">
-      <div><div class="dk">Sec ${d.sec} — ${d.label}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${d.note} · Max: ${inrFull(d.max)}</div></div>
+      <div><div class="dk">Sec ${d.sec} — ${d.label}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Max: ${inrFull(d.max)}</div></div>
       <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:10px;color:var(--text3);font-family:var(--font-m)">₹</span>
         <input type="number" value="${D.deductions[d.key]||0}" min="0" max="${d.max}" step="1000"
           style="width:110px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 10px;color:var(--gold);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-          onchange="D.deductions['${d.key}']=parseInt(this.value)||0; render(); pendingChanges=true; document.getElementById('income-edit-toolbar').style.display='flex'; editMode=true;">
-        <span class="badge ${D.deductions[d.key]>=d.max?'bg':'ba'}">${D.deductions[d.key]>=d.max?'Max':'Partial'}</span>
+          onchange="D.deductions['${d.key}']=parseInt(this.value)||0;render();markDirty()">
+        <span class="badge ${(D.deductions[d.key]||0)>=d.max?'bg':'ba'}">${(D.deductions[d.key]||0)>=d.max?'Max':'Partial'}</span>
       </div>
     </div>`).join('');
-
-  const totalDedn = deds.reduce((s,d)=>s+(D.deductions[d.key]||0),0);
-  const taxSaving = Math.round(totalDedn * 0.30);
-  document.getElementById('deductionImpact').innerHTML = `
+  const totalDedn=deds.reduce((s,d)=>s+(D.deductions[d.key]||0),0);
+  document.getElementById('deductionImpact').innerHTML=`
     <div class="dr"><span class="dk">Total Deductions Claimed</span><span class="dv gold">${inrFull(totalDedn)}</span></div>
-    <div class="dr"><span class="dk">Tax Saved (@ 30%)</span><span class="dv green">${inrFull(taxSaving)}</span></div>
+    <div class="dr"><span class="dk">Tax Saved @ 30%</span><span class="dv green">${inrFull(Math.round(totalDedn*0.30))}</span></div>
     <div class="dr"><span class="dk">Max Possible (80C+80D+80TTB)</span><span class="dv">${inrFull(250000)}</span></div>
-    <div class="dr"><span class="dk">Remaining Opportunity</span><span class="dv ${totalDedn<250000?'amber':'green'}">${inrFull(Math.max(0,250000-totalDedn))}</span></div>
-    <div class="dr" style="border:none"><span class="dk">Potential Additional Tax Saving</span><span class="dv green">${inrFull(Math.max(0,250000-totalDedn)*0.30)}</span></div>`;
+    <div class="dr"><span class="dk">Remaining Opportunity</span><span class="dv amber">${inrFull(Math.max(0,250000-totalDedn))}</span></div>
+    <div class="dr" style="border:none"><span class="dk">Potential Additional Tax Saving</span><span class="dv green">${inrFull(Math.round(Math.max(0,250000-totalDedn)*0.30))}</span></div>`;
 }
 
+// ─── SALARY ───────────────────────────────────────────────────────────
 function renderSalary() {
-  const months = D.partnerSalary.months;
-  const gross = months.reduce((s,m)=>s+m.gross,0);
-  const tds   = months.reduce((s,m)=>s+m.tds,0);
-  document.getElementById('sal-gross').textContent = inr(gross);
-  document.getElementById('sal-tds').textContent   = inr(tds);
-  document.getElementById('sal-net').textContent   = inr(gross - tds);
-  document.getElementById('sal-avg').textContent   = inr(gross/12);
-  document.getElementById('salaryMonthBody').innerHTML = `
-    <table><thead><tr><th>Month</th><th style="text-align:right">Gross (₹)</th><th style="text-align:right">TDS (₹)</th><th style="text-align:right">Net (₹)</th><th>Mode</th></tr></thead><tbody>
-    ${months.map((m,i) => `<tr>
+  const months=D.partnerSalary.months;
+  const gross=months.reduce((s,m)=>s+m.gross,0);
+  const tds=months.reduce((s,m)=>s+m.tds,0);
+  document.getElementById('sal-gross').textContent=inr(gross);
+  document.getElementById('sal-tds').textContent=inr(tds);
+  document.getElementById('sal-net').textContent=inr(gross-tds);
+  document.getElementById('sal-avg').textContent=inr(gross/12);
+  document.getElementById('salaryMonthBody').innerHTML=`
+    <table><thead><tr><th>Month</th><th style="text-align:right">Gross (₹)</th><th style="text-align:right">TDS (₹)</th><th style="text-align:right">Net (₹)</th></tr></thead><tbody>
+    ${months.map((m,i)=>`<tr>
       <td style="color:var(--text)">${m.month}</td>
-      <td class="num"><input type="number" value="${m.gross}" step="100" style="width:90px;background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--gold);font-family:var(--font-m);font-size:11px;text-align:right;outline:none" onchange="D.partnerSalary.months[${i}].gross=parseInt(this.value)||0;D.partnerSalary.months[${i}].tds=Math.round(parseInt(this.value)*0.10)||0;render();pendingChanges=true;document.getElementById('income-edit-toolbar').style.display='flex';editMode=true;"></td>
+      <td class="num"><input type="number" value="${m.gross}" step="100" style="width:90px;background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--gold);font-family:var(--font-m);font-size:11px;text-align:right;outline:none"
+        onchange="D.partnerSalary.months[${i}].gross=parseInt(this.value)||0;D.partnerSalary.months[${i}].tds=Math.round(parseInt(this.value)*0.10)||0;render();markDirty()"></td>
       <td class="num" style="color:var(--red)">${inrFull(m.tds)}</td>
       <td class="num" style="color:var(--green)">${inrFull(m.gross-m.tds)}</td>
-      <td><span class="badge bb" style="font-size:9px">TMB SB A/C</span></td>
     </tr>`).join('')}
-    <tr class="total-row"><td>Total</td><td class="num">${inrFull(gross)}</td><td class="num">${inrFull(tds)}</td><td class="num">${inrFull(gross-tds)}</td><td></td></tr>
+    <tr class="total-row"><td>Total</td><td class="num">${inrFull(gross)}</td><td class="num">${inrFull(tds)}</td><td class="num">${inrFull(gross-tds)}</td></tr>
     </tbody></table>`;
 }
 
+// ─── AGRICULTURE ──────────────────────────────────────────────────────
 function renderAgri() {
-  document.getElementById('ag-gross').textContent = inr(D.agricultureIncome.grossReceipts);
-  document.getElementById('ag-bank').textContent  = inr(D.agricultureIncome.bankDeposited);
-  document.getElementById('ag-cash').textContent  = inr(D.agricultureIncome.cashExpenses);
-  document.getElementById('agriBody').innerHTML = `
+  document.getElementById('ag-gross').textContent=inr(D.agricultureIncome.grossReceipts);
+  document.getElementById('ag-bank').textContent=inr(D.agricultureIncome.bankDeposited);
+  document.getElementById('ag-cash').textContent=inr(D.agricultureIncome.cashExpenses);
+  document.getElementById('agriBody').innerHTML=`
     <div class="dr"><span class="dk">Gross Receipts</span>
-      <input type="number" value="${D.agricultureIncome.grossReceipts}" step="1000" style="width:120px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 10px;color:var(--gold);font-family:var(--font-m);font-size:12px;text-align:right;outline:none" onchange="D.agricultureIncome.grossReceipts=parseInt(this.value)||0;D.agricultureIncome.bankDeposited=Math.round(D.agricultureIncome.grossReceipts*0.80);D.agricultureIncome.cashExpenses=D.agricultureIncome.grossReceipts-D.agricultureIncome.bankDeposited;render();pendingChanges=true;document.getElementById('income-edit-toolbar').style.display='flex';editMode=true;">
+      <input type="number" value="${D.agricultureIncome.grossReceipts}" step="1000" style="width:120px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 10px;color:var(--gold);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
+        onchange="D.agricultureIncome.grossReceipts=parseInt(this.value)||0;D.agricultureIncome.bankDeposited=Math.round(D.agricultureIncome.grossReceipts*0.80);D.agricultureIncome.cashExpenses=D.agricultureIncome.grossReceipts-D.agricultureIncome.bankDeposited;render();markDirty()">
     </div>
-    <div class="dr"><span class="dk">Deposited in Bank</span><span class="dv teal">${inrFull(D.agricultureIncome.bankDeposited)}</span></div>
+    <div class="dr"><span class="dk">Deposited in Bank</span><span class="dv" style="color:var(--teal)">${inrFull(D.agricultureIncome.bankDeposited)}</span></div>
     <div class="dr"><span class="dk">Cash / Expenses</span><span class="dv">${inrFull(D.agricultureIncome.cashExpenses)}</span></div>
     <div class="dr"><span class="dk">IT Treatment</span><span class="dv green">Sec 10(1) — Fully Exempt</span></div>
     <div class="dr"><span class="dk">Used for Slab Rate</span><span class="dv">Partial Integration Method</span></div>
     <div class="dr" style="border:none"><span class="dk">Notes</span><span class="dv" style="font-size:11px">${D.agricultureIncome.notes}</span></div>`;
 }
 
-// ─── CHART HELPER ─────────────────────────────────────
-function renderChart(id, type, data, options = {}) {
-  const canvas = document.getElementById(id);
+// ─── CHART HELPER ─────────────────────────────────────────────────────
+function renderChart(id, type, data, options={}) {
+  const canvas=document.getElementById(id);
   if (!canvas) return;
   if (chartReg[id]) { chartReg[id].destroy(); }
-  chartReg[id] = new Chart(canvas, { type, data, options: { responsive:true, maintainAspectRatio:false, ...options } });
+  chartReg[id]=new Chart(canvas,{type,data,options:{responsive:true,maintainAspectRatio:false,...options}});
 }
 
-// ─── UI HELPERS ───────────────────────────────────────
+// ─── UI HELPERS ───────────────────────────────────────────────────────
 function showPanel(id, el) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (el) el.classList.add('active');
 }
 
 function setSyncStatus(state, label) {
-  const dot = document.getElementById('syncDot');
-  const lbl = document.getElementById('syncLabel');
-  dot.className = 'sync-dot ' + (state === 'ok' ? 'ok' : state === 'saving' ? 'saving' : state === 'err' ? 'err' : '');
-  lbl.textContent = label;
+  const dot=document.getElementById('syncDot');
+  const lbl=document.getElementById('syncLabel');
+  dot.className='sync-dot '+(state==='ok'?'ok':state==='saving'?'saving':state==='err'?'err':'');
+  lbl.textContent=label;
 }
 
-function showToast(msg, type = 'info') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.className = 'toast', 3500);
+function showToast(msg, type='info') {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+type+' show';
+  setTimeout(()=>t.className='toast',3500);
 }
 
-// Warn before leaving with unsaved changes
-function markDirty() {
-  pendingChanges = true;
-  document.getElementById('income-edit-toolbar').style.display = 'flex';
-  editMode = true;
-}
-window.addEventListener('beforeunload', e => { if (pendingChanges) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e=>{if(pendingChanges){e.preventDefault();e.returnValue='';}});
 
-// ─── BOOT ─────────────────────────────────────────────
-// Boot — check session token
+// ─── BOOT ─────────────────────────────────────────────────────────────
 if (_token) {
+  document.getElementById('loginOverlay').style.display='none';
   loadData();
 } else {
-  document.getElementById('loadingOverlay').style.display = 'none';
-  document.getElementById('loginOverlay').style.display = 'flex';
-  setTimeout(() => document.getElementById('loginPass').focus(), 100);
+  document.getElementById('loadingOverlay').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
+  setTimeout(()=>document.getElementById('loginPass').focus(),100);
 }
+
 </script>
 </body>
 </html>
