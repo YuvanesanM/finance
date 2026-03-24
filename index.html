@@ -671,7 +671,7 @@ async function loadData(forceRefresh = false) {
     const _lo = document.getElementById('loadingOverlay'); if(_lo) _lo.style.display = 'none';
   } catch(e) {
     setSyncStatus('err', 'Error — retry');
-    const _lo = document.getElementById('loadingOverlay'); if(_lo) _lo.style.display = 'none';
+    const _lo2 = document.getElementById('loadingOverlay'); if(_lo2) _lo2.style.display = 'none';
     showToast('Failed to load data: ' + e.message, 'err');
   }
 }
@@ -826,24 +826,11 @@ function calc() {
 
   // Slab bands for chart (on taxable income only, agri excluded as exempt)
   // GST quarterly
-  const qGST = [0,0,0,0];
-  const qRent = [0,0,0,0];
-  props.forEach(p => {
-    p.months.forEach((m,i) => {
-      const q = i < 3 ? 0 : i < 6 ? 1 : i < 9 ? 2 : 3;
-      qRent[q] += m.rent;
-      qGST[q]  += m.rent * p.gstRate;
-    });
-  });
 
   // Monthly totals for chart
-  const monthlyTotals = MONTHS.map((_,i) => props.reduce((s,p) => s + (p.months[i]?.rent||0), 0));
 
   // Paid/unpaid stats
-  let paidMonths = 0, totalMonths = 0, paidAmt = 0, pendAmt = 0;
-  props.forEach(p => p.months.forEach(m => {
-    if (m.rent > 0) { totalMonths++; if (m.paid) { paidMonths++; paidAmt += m.rent; } else { pendAmt += m.rent; } }
-  }));
+  
 
   // Slab amounts for display
 
@@ -919,6 +906,65 @@ function calc() {
   const slabsNew      = newSlabBands(totalForRateNew);
   const agriTaxNew    = newRegimeTax(agriGross);
 
+
+  // ── Paid/unpaid stats ──────────────────────────────────────────────
+  let paidMonths = 0, totalMonths = 0, paidAmt = 0, pendAmt = 0;
+  D.properties.forEach(p => {
+    p.months.forEach(m => {
+      if (m.rent > 0) {
+        totalMonths++;
+        if (m.paid) { paidMonths++; paidAmt += m.rent; }
+        else { pendAmt += m.rent; }
+      }
+    });
+  });
+
+  // ── City map ────────────────────────────────────────────────────────
+
+
+  // ── Monthly totals (for tracker) ────────────────────────────────────
+  const monthlyTotals = Array(12).fill(0);
+  D.properties.forEach(p => { p.months.forEach((m,i) => { monthlyTotals[i] += m.rent; }); });
+
+  // ── GST quarterly ───────────────────────────────────────────────────
+  const qGST  = [0,0,0,0];
+  const qRent = [0,0,0,0];
+  D.properties.filter(p=>p.gstRate>0).forEach(p => {
+    p.months.forEach((m,i) => {
+      const q = i<3?0:i<6?1:i<9?2:3;
+      qRent[q] += m.rent;
+      qGST[q]  += m.rent * p.gstRate;
+    });
+  });
+
+  // ── Capital gains tax (Sec 112A / 111A — FA 2024) ───────────────────
+  const ltcgTaxRate  = 0.125;
+  const stcgTaxRate  = 0.20;
+  const ltcgTax      = ltcgAfterShortfall * ltcgTaxRate;
+  const stcgTax      = stcgEquity * stcgTaxRate;
+  const cgSurchRate  = Math.min(surchRate, 0.15);
+  const ltcgSurch    = ltcgTax  * cgSurchRate;
+  const stcgSurch    = stcgTax  * cgSurchRate;
+  const cgCess       = (ltcgTax + ltcgSurch + stcgTax + stcgSurch) * 0.04;
+  const totalCGTax   = ltcgTax + ltcgSurch + stcgTax + stcgSurch + cgCess;
+
+  // Grand totals = slab tax + CG tax
+  const grandTotalTax    = totalTax    + totalCGTax;
+  const grandBalanceTax  = Math.max(0, grandTotalTax - totalTDS - salTDS);
+
+  // New regime CG (same rates)
+  const cgSurchRateNew   = Math.min(surchRateNew, 0.15);
+  const ltcgTaxNew       = ltcgAfterShortfall * ltcgTaxRate;
+  const stcgTaxNew       = stcgEquity * stcgTaxRate;
+  const cgCessNew        = (ltcgTaxNew*(1+cgSurchRateNew) + stcgTaxNew*(1+cgSurchRateNew)) * 0.04;
+  const totalCGTaxNew    = ltcgTaxNew*(1+cgSurchRateNew) + stcgTaxNew*(1+cgSurchRateNew) + cgCessNew;
+  const grandTotalTaxNew = totalTaxNew + totalCGTaxNew;
+  const grandBalanceTaxNew = Math.max(0, grandTotalTaxNew - totalTDS - salTDS);
+
+  // taxOnTotalOld / taxOnTotalNew (for slab display)
+  const taxOnTotalOld = Math.round(slabs.reduce((s,b)=>s+b.tax,0) + agriTaxOld);
+  const taxOnTotalNew = Math.round(slabsNew.reduce((s,b)=>s+b.tax,0) + agriTaxNew);
+
   return {
     // ── Rental ──
     grossRent, totalTDS, totalGST, repair30, netHP,
@@ -926,7 +972,7 @@ function calc() {
     salGross, salTDS, salNet, otherInc, agriGross,
     // ── Old regime ──
     grossTotal, deductions, taxableIncome, totalForRate,
-    taxOnTotalOld: Math.round(slabs.reduce((s,b)=>s+b.tax,0)),
+    taxOnTotalOld,
     agriTaxOld:    Math.round(agriTaxOld),
     totalTax:      Math.round(totalTax   * 100) / 100,
     rawTax:        Math.round(rawTax     * 100) / 100,
@@ -937,7 +983,7 @@ function calc() {
     slabs,
     // ── New regime ──
     grossTotalNew, taxableNew, totalForRateNew,
-    taxOnTotalNew: Math.round(slabsNew.reduce((s,b)=>s+b.tax,0)),
+    taxOnTotalNew,
     agriTaxNew:    Math.round(agriTaxNew),
     totalTaxNew:   Math.round(totalTaxNew   * 100) / 100,
     rawTaxNew:     Math.round(rawTaxNew     * 100) / 100,
@@ -1184,7 +1230,6 @@ function markDirty() {
 }
 
 // ─── PROPERTY ─────────────────────────────────────────────────────────
-const MONTHS_SHORT = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
 
 function renderProperty(C) {
   document.getElementById('hp-gross').textContent = inr(C.grossRent);
