@@ -357,41 +357,104 @@ td.prop-name{color:var(--text);font-weight:500}
 
 <!-- ── INCOME SOURCES ── -->
 <div id="income" class="panel">
-  <div class="page-hd"><div><div class="page-title">Income <em>Sources</em></div><div class="page-sub">All heads · Click cells to edit inline</div></div></div>
-  <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-label">House Property (Gross)</div><div class="kpi-value" id="is-hp" style="color:var(--teal)">—</div><div class="kpi-sub">Before 30% Sec 24 dedn</div></div>
-    <div class="kpi"><div class="kpi-label">Partner Salary (PM)</div><div class="kpi-value" id="is-sal" style="color:var(--gold)">—</div><div class="kpi-sub">Before TDS</div></div>
-    <div class="kpi"><div class="kpi-label">Agriculture (Exempt)</div><div class="kpi-value" id="is-agri" style="color:var(--green)">—</div><div class="kpi-sub">Sec 10(1) — for slab only</div></div>
-    <div class="kpi"><div class="kpi-label">Other Income</div><div class="kpi-value" id="is-other" style="color:var(--blue)">—</div><div class="kpi-sub">SB interest · dividends</div></div>
-  </div>
-  <div class="card">
-    <div class="card-hd"><span class="card-title">All Rental Properties — Edit Mode</span><span class="card-tag" id="income-edit-hint">Click any rent cell to edit</span></div>
-    <div id="income-edit-toolbar" style="display:none" class="edit-toolbar">
-      ✏ Editing income data — changes save to GitHub
+  <div class="page-hd">
+    <div>
+      <div class="page-title">Income <em>Sources</em></div>
+      <div class="page-sub">Read-only summary · Edit values in their respective panels</div>
+    </div>
+    <div class="income-edit-toolbar" id="income-edit-toolbar" style="display:none">
+      <span style="font-size:11px;color:var(--amber);font-family:var(--font-m)">✏ Unsaved changes</span>
       <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
       <button class="save-btn" onclick="saveToGitHub()">Save to GitHub ↑</button>
+    </div>
+  </div>
+
+  <!-- KPI Summary Row -->
+  <div class="kpi-grid">
+    <div class="kpi" style="--kc:var(--teal)">
+      <div class="kpi-label">House Property (Gross)</div>
+      <div class="kpi-value" id="is-hp" style="color:var(--teal)">—</div>
+      <div class="kpi-sub">13 properties · before 30% Sec 24a</div>
+    </div>
+    <div class="kpi" style="--kc:var(--gold)">
+      <div class="kpi-label">Partner Salary</div>
+      <div class="kpi-value" id="is-sal" style="color:var(--gold)">—</div>
+      <div class="kpi-sub">Premier Marketing · before TDS</div>
+    </div>
+    <div class="kpi" style="--kc:var(--green)">
+      <div class="kpi-label">Agriculture Income</div>
+      <div class="kpi-value" id="is-agri" style="color:var(--green)">—</div>
+      <div class="kpi-sub">Sec 10(1) exempt · slab rate only</div>
+    </div>
+    <div class="kpi" style="--kc:var(--blue)">
+      <div class="kpi-label">Other Income + CG</div>
+      <div class="kpi-value" id="is-other" style="color:var(--blue)">—</div>
+      <div class="kpi-sub">Interest · Dividends · LTCG · STCG</div>
+    </div>
+  </div>
+
+  <!-- Income breakdown cards -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+    <!-- House Property summary -->
+    <div class="card" style="margin:0">
+      <div class="card-hd">
+        <span class="card-title">House Property</span>
+        <span class="card-tag" style="cursor:pointer;color:var(--gold)" onclick="showPanel('property',document.querySelector('.nav-item:nth-child(3)'))">Edit in HP panel →</span>
+      </div>
+      <div class="card-body" id="is-hp-detail"></div>
+    </div>
+
+    <!-- Partner Salary summary -->
+    <div class="card" style="margin:0">
+      <div class="card-hd">
+        <span class="card-title">Partner Salary</span>
+        <span class="card-tag" style="cursor:pointer;color:var(--gold)" onclick="showPanel('salary',document.querySelector('.nav-item:nth-child(9)'))">Edit in Salary panel →</span>
+      </div>
+      <div class="card-body" id="is-sal-detail"></div>
+    </div>
+
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+    <!-- Agriculture summary -->
+    <div class="card" style="margin:0">
+      <div class="card-hd">
+        <span class="card-title">Agriculture Income</span>
+        <span class="card-tag" style="cursor:pointer;color:var(--gold)" onclick="showPanel('agri',document.querySelector('.nav-item:nth-child(10)'))">Edit in Agriculture panel →</span>
+      </div>
+      <div class="card-body" id="is-agri-detail"></div>
+    </div>
+
+    <!-- Other Income (editable here) -->
+    <div class="card" style="margin:0">
+      <div class="card-hd">
+        <span class="card-title">Other Income &amp; Capital Gains</span>
+        <span class="card-tag">Editable</span>
+      </div>
+      <div class="card-body" id="otherIncomeCard"></div>
+    </div>
+
+  </div>
+
+  <!-- Property table — read only -->
+  <div class="card">
+    <div class="card-hd">
+      <span class="card-title">Property Income Summary</span>
+      <span class="card-tag" style="cursor:pointer;color:var(--gold)" onclick="showPanel('property',document.querySelector('.nav-item:nth-child(3)'))">Full edit in House Property →</span>
     </div>
     <div class="tw"><table id="incomeTable">
       <thead><tr>
         <th>#</th><th>Property</th><th>Tenant</th><th>Type</th>
-        <th style="text-align:right">Annual Rent (₹)</th>
-        <th style="text-align:right">GST (₹)</th>
-        <th style="text-align:right">TDS (₹)</th>
-        <th style="text-align:right">Net Recd (₹)</th>
-        <th>Status</th>
+        <th style="text-align:right">Annual Rent</th>
+        <th style="text-align:right">GST</th>
+        <th style="text-align:right">TDS</th>
+        <th style="text-align:right">Net Received</th>
+        <th>Collection</th>
       </tr></thead>
       <tbody id="incomeTableBody"></tbody>
     </table></div>
-  </div>
-  <div class="g2">
-    <div class="card" style="margin:0">
-      <div class="card-hd"><span class="card-title">Salary — Premier Marketing</span><span class="card-tag">Editable</span></div>
-      <div class="card-body" id="salaryCard"></div>
-    </div>
-    <div class="card" style="margin:0">
-      <div class="card-hd"><span class="card-title">Other Income</span><span class="card-tag">Editable</span></div>
-      <div class="card-body" id="otherIncomeCard"></div>
-    </div>
   </div>
 </div>
 
@@ -1079,7 +1142,7 @@ function render() {
 }
 
 function updateNavBadges(C) {
-  document.getElementById('nb-income').textContent = inr(C.grossRent + C.salGross);
+  document.getElementById('nb-income').textContent = inr(C.grossRent + C.salGross + C.agriGross + C.otherInc);
   document.getElementById('nb-tax').textContent    = inr(C.grandTotalTax);
   document.getElementById('nb-gst').textContent    = inr(C.totalGST);
 }
@@ -1152,83 +1215,160 @@ function renderOverview(C) {
 // ─── INCOME TABLE ─────────────────────────────────────────────────────
 function renderIncomeTable() {
   const C = calc();
+
+  // ── KPI tiles ──────────────────────────────────────────────────────
   document.getElementById('is-hp').textContent    = inr(C.grossRent);
   document.getElementById('is-sal').textContent   = inr(C.salGross);
   document.getElementById('is-agri').textContent  = inr(C.agriGross);
   document.getElementById('is-other').textContent = inr(C.otherInc + C.ltcgGross + C.stcgEquity);
 
-  const tbody = document.getElementById('incomeTableBody'); tbody.innerHTML='';
-  let totGross=0,totGST=0,totTDS=0,totNet=0;
-  D.properties.forEach((p,idx)=>{
-    const gr  = p.months.reduce((s,m)=>s+m.rent,0);
-    const gst = gr * p.gstRate;
-    const tds = gr * p.tdsRate;
-    const net = gr - tds;
-    totGross+=gr; totGST+=gst; totTDS+=tds; totNet+=net;
-    const paidCount    = p.months.filter(m=>m.rent>0&&m.paid).length;
-    const totalRentMos = p.months.filter(m=>m.rent>0).length;
-    const status = gr===0?'<span class="badge br">NIL</span>':totalRentMos===12?'<span class="badge bg">Active 12M</span>':'<span class="badge ba">'+paidCount+'/'+totalRentMos+' Months</span>';
-    const rentCell = editMode
-      ? `<td class="num"><span class="editable" contenteditable="true" data-pid="${p.id}" onblur="onRentEdit(this)">${Math.round(gr).toLocaleString('en-IN')}</span></td>`
-      : `<td class="num">${inrFull(gr)}</td>`;
+  // ── House Property detail card (read-only) ─────────────────────────
+  const hpDetail = document.getElementById('is-hp-detail');
+  if (hpDetail) {
+    const paidRent = D.properties.reduce((s,p) => s + p.months.filter(m=>m.paid).reduce((a,m)=>a+m.rent,0), 0);
+    const pendRent = D.properties.reduce((s,p) => s + p.months.filter(m=>!m.paid&&m.rent>0).reduce((a,m)=>a+m.rent,0), 0);
+    hpDetail.innerHTML = `
+      <div class="dr"><span class="dk">Gross Annual Rent</span><span class="dv" style="color:var(--teal)">${inrFull(C.grossRent)}</span></div>
+      <div class="dr"><span class="dk">Less: 30% Repair Deduction (Sec 24a)</span><span class="dv red">– ${inrFull(C.repair30)}</span></div>
+      <div class="dr"><span class="dk">Net HP Income (taxable)</span><span class="dv gold">${inrFull(C.netHP)}</span></div>
+      <div class="dr"><span class="dk">TDS Deducted at Source</span><span class="dv green">${inrFull(C.totalTDS)}</span></div>
+      <div class="dr"><span class="dk">GST Collected</span><span class="dv">${inrFull(C.totalGST)}</span></div>
+      <div class="dr"><span class="dk">Rent Received (paid months)</span><span class="dv green">${inrFull(paidRent)}</span></div>
+      <div class="dr" style="border:none"><span class="dk">Rent Pending</span><span class="dv amber">${inrFull(pendRent)}</span></div>`;
+  }
+
+  // ── Salary detail card (read-only) ────────────────────────────────
+  const salDetail = document.getElementById('is-sal-detail');
+  if (salDetail) {
+    const months = D.partnerSalary.months;
+    salDetail.innerHTML = `
+      <div class="dr"><span class="dk">Gross Salary (Annual)</span><span class="dv gold">${inrFull(C.salGross)}</span></div>
+      <div class="dr"><span class="dk">Monthly Average</span><span class="dv">${inrFull(Math.round(C.salGross/12))}</span></div>
+      <div class="dr"><span class="dk">TDS Deducted (10%)</span><span class="dv red">– ${inrFull(C.salTDS)}</span></div>
+      <div class="dr"><span class="dk">Net Salary Received</span><span class="dv green">${inrFull(C.salNet)}</span></div>
+      <div class="dr" style="border:none"><span class="dk">Source</span><span class="dv">${D.partnerSalary.source}</span></div>`;
+  }
+
+  // ── Agriculture detail card (read-only) ───────────────────────────
+  const agriDetail = document.getElementById('is-agri-detail');
+  if (agriDetail) {
+    agriDetail.innerHTML = `
+      <div class="dr"><span class="dk">Gross Receipts</span><span class="dv green">${inrFull(C.agriGross)}</span></div>
+      <div class="dr"><span class="dk">Bank Deposited</span><span class="dv">${inrFull(D.agricultureIncome.bankDeposited)}</span></div>
+      <div class="dr"><span class="dk">Cash / Expenses</span><span class="dv">${inrFull(D.agricultureIncome.cashExpenses)}</span></div>
+      <div class="dr"><span class="dk">IT Treatment</span><span class="dv green">Sec 10(1) — Fully Exempt</span></div>
+      <div class="dr" style="border:none"><span class="dk">Used for</span><span class="dv" style="color:var(--text3)">Partial integration (slab rate only)</span></div>`;
+  }
+
+  // ── Other Income editable card ─────────────────────────────────────
+  const ltcgVal = D.otherIncome.ltcgEquity || 0;
+  const stcgVal = D.otherIncome.stcgEquity || 0;
+  const inputStyle = `width:120px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 10px;color:var(--text);font-family:var(--font-m);font-size:12px;text-align:right;outline:none`;
+  const cgInputStyle = (color) => `width:120px;background:var(--bg4);border:1px solid ${color};border-radius:var(--rs);padding:5px 10px;color:var(--text);font-family:var(--font-m);font-size:12px;text-align:right;outline:none`;
+
+  document.getElementById('otherIncomeCard').innerHTML = `
+    <div style="font-size:9px;font-family:var(--font-m);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Slab Income</div>
+
+    <div class="dr">
+      <div><div class="dk">Savings Account Interest</div><div style="font-size:10px;color:var(--text3);margin-top:1px">TMB + SBI · Sec 80TTA (Sr Citizen → 80TTB)</div></div>
+      <input type="number" value="${D.otherIncome.sbInterest||0}" min="0" step="100" style="${inputStyle}"
+        onchange="D.otherIncome.sbInterest=parseInt(this.value)||0;render();markDirty()">
+    </div>
+    <div class="dr">
+      <div><div class="dk">Fixed / Term Deposit Interest</div><div style="font-size:10px;color:var(--text3);margin-top:1px">Sec 80TTB: Sr Citizen ₹50,000 deduction available</div></div>
+      <input type="number" value="${D.otherIncome.depositInterest||0}" min="0" step="1000" style="${inputStyle}"
+        onchange="D.otherIncome.depositInterest=parseInt(this.value)||0;render();markDirty()">
+    </div>
+    <div class="dr">
+      <div><div class="dk">Dividend Income</div><div style="font-size:10px;color:var(--text3);margin-top:1px">MF / Equity dividends · taxable as per slab</div></div>
+      <input type="number" value="${D.otherIncome.dividends||0}" min="0" step="1000" style="${inputStyle}"
+        onchange="D.otherIncome.dividends=parseInt(this.value)||0;render();markDirty()">
+    </div>
+    <div class="dr">
+      <div><div class="dk">PMS Income</div><div style="font-size:10px;color:var(--text3);margin-top:1px">Portfolio Management Service gains · taxable as per slab</div></div>
+      <input type="number" value="${D.otherIncome.pmsIncome||0}" min="0" step="1000" style="${inputStyle}"
+        onchange="D.otherIncome.pmsIncome=parseInt(this.value)||0;render();markDirty()">
+    </div>
+
+    <div style="border-top:1px solid var(--border2);margin:12px 0 10px;padding-top:10px">
+      <div style="font-size:9px;font-family:var(--font-m);color:var(--amber);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Capital Gains — Finance Act 2024 (w.e.f. 23 Jul 2024)</div>
+
+      <div class="dr">
+        <div>
+          <div class="dk">LTCG — Equity / Equity MF (Sec 112A)</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">
+            Rate: <strong style="color:var(--gold)">12.5%</strong> flat &nbsp;·&nbsp;
+            Exempt: <strong style="color:var(--green)">₹1,25,000</strong> per year &nbsp;·&nbsp;
+            Holding: <strong>&gt; 12 months</strong>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px">Taxable = Gross – ₹1.25L exemption = ${inrFull(Math.max(0,(D.otherIncome.ltcgEquity||0)-125000))} @ 12.5%</div>
+        </div>
+        <input type="number" value="${ltcgVal}" min="0" step="1000" style="${cgInputStyle('rgba(201,168,76,.4)')}"
+          onchange="D.otherIncome.ltcgEquity=parseInt(this.value)||0;render();markDirty()"
+          placeholder="Gross LTCG">
+      </div>
+
+      <div class="dr" style="border:none">
+        <div>
+          <div class="dk">STCG — Equity / Equity MF (Sec 111A)</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">
+            Rate: <strong style="color:var(--red)">20%</strong> flat &nbsp;·&nbsp;
+            No exemption &nbsp;·&nbsp;
+            Holding: <strong>≤ 12 months</strong>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px">Both regimes: same CG tax rates · Surcharge capped at 15%</div>
+        </div>
+        <input type="number" value="${stcgVal}" min="0" step="1000" style="${cgInputStyle('rgba(248,113,113,.4)')}"
+          onchange="D.otherIncome.stcgEquity=parseInt(this.value)||0;render();markDirty()"
+          placeholder="Gross STCG">
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border2);padding-top:10px;margin-top:4px">
+      <div class="dr"><span class="dk">Slab Income Total</span><span class="dv" style="color:var(--text2)">${inrFull(C.otherInc)}</span></div>
+      <div class="dr" style="border:none"><span class="dk">Capital Gains Total (gross)</span><span class="dv gold">${inrFull(ltcgVal+stcgVal)}</span></div>
+    </div>`;
+
+  // ── Property table (read-only) ─────────────────────────────────────
+  const tbody = document.getElementById('incomeTableBody');
+  tbody.innerHTML = '';
+  let totGross=0, totGST=0, totTDS=0, totNet=0;
+  D.properties.forEach((p, idx) => {
+    const gr   = p.months.reduce((s,m) => s+m.rent, 0);
+    const gst  = gr * p.gstRate;
+    const tds  = gr * p.tdsRate;
+    const net  = gr - tds;
+    totGross += gr; totGST += gst; totTDS += tds; totNet += net;
+    const paid = p.months.filter(m=>m.rent>0&&m.paid).length;
+    const total= p.months.filter(m=>m.rent>0).length;
+    const pct  = total > 0 ? Math.round(paid/total*100) : 0;
+    const statusBadge = gr===0
+      ? '<span class="badge br">NIL</span>'
+      : pct===100
+        ? '<span class="badge bg">✓ Fully Paid</span>'
+        : `<span class="badge ba">${paid}/${total} · ${pct}%</span>`;
     tbody.innerHTML += `<tr>
       <td style="color:var(--text3);font-family:var(--font-m);font-size:10px">${String(idx+1).padStart(2,'0')}</td>
       <td class="prop-name">${p.emoji} ${p.name}</td>
-      <td style="color:var(--text2)">${p.tenant}</td>
-      <td>${p.type==='commercial'?'<span class="badge bb">Commercial</span>':'<span class="badge bgold">Residential</span>'}</td>
-      ${rentCell}
+      <td style="color:var(--text2);font-size:12px">${p.tenant}</td>
+      <td>${p.type==='commercial'?'<span class="badge bb">Comm</span>':'<span class="badge bgold">Resi</span>'}</td>
+      <td class="num">${inrFull(gr)}</td>
       <td class="num">${gst>0?inrFull(gst):'—'}</td>
       <td class="num" style="color:var(--red)">${tds>0?inrFull(tds):'—'}</td>
       <td class="num">${inrFull(net)}</td>
-      <td>${status}</td>
+      <td>${statusBadge}</td>
     </tr>`;
   });
-  tbody.innerHTML += `<tr class="total-row"><td colspan="4">Total House Property</td><td class="num">${inrFull(totGross)}</td><td class="num">${inrFull(totGST)}</td><td class="num">${inrFull(totTDS)}</td><td class="num">${inrFull(totNet)}</td><td></td></tr>`;
-
-  // Salary card
-  document.getElementById('salaryCard').innerHTML = `
-    <div class="dr"><span class="dk">Gross Salary (FY 2025-26)</span><span class="dv gold">${inrFull(C.salGross)}</span></div>
-    <div class="dr"><span class="dk">TDS Deducted (10%)</span><span class="dv red">${inrFull(C.salTDS)}</span></div>
-    <div class="dr"><span class="dk">Net Received</span><span class="dv green">${inrFull(C.salNet)}</span></div>
-    <div class="dr" style="border:none"><span class="dk">Source</span><span class="dv">Premier Marketing</span></div>`;
-
-  // Other income card with LTCG/STCG
-  const ltcgVal = D.otherIncome.ltcgEquity  || 0;
-  const stcgVal = D.otherIncome.stcgEquity  || 0;
-  document.getElementById('otherIncomeCard').innerHTML = `
-    <div class="dr"><span class="dk">SB Account Interest</span>
-      <input type="number" value="${D.otherIncome.sbInterest||0}" min="0" step="100"
-        style="width:110px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 8px;color:var(--text);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-        onchange="D.otherIncome.sbInterest=parseInt(this.value)||0;render();markDirty()"></div>
-    <div class="dr"><span class="dk">Deposit Interest</span>
-      <input type="number" value="${D.otherIncome.depositInterest||0}" min="0" step="1000"
-        style="width:110px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 8px;color:var(--text);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-        onchange="D.otherIncome.depositInterest=parseInt(this.value)||0;render();markDirty()"></div>
-    <div class="dr"><span class="dk">Dividends / PMS</span>
-      <input type="number" value="${D.otherIncome.dividends||0}" min="0" step="1000"
-        style="width:110px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 8px;color:var(--text);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-        onchange="D.otherIncome.dividends=parseInt(this.value)||0;render();markDirty()"></div>
-    <div style="border-top:1px solid var(--border2);margin:10px 0 8px;padding-top:8px">
-      <div style="font-size:9px;font-family:var(--font-m);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Capital Gains — FA 2024 (w.e.f. 23 Jul 2024)</div>
-      <div class="dr">
-        <div><div class="dk">LTCG — Equity / Equity MF (Sec 112A)</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">12.5% flat · ₹1.25L exempt · Holding > 12 months</div></div>
-        <input type="number" value="${ltcgVal}" min="0" step="1000"
-          style="width:110px;background:var(--bg4);border:1px solid rgba(201,168,76,.3);border-radius:var(--rs);padding:5px 8px;color:var(--gold);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-          onchange="D.otherIncome.ltcgEquity=parseInt(this.value)||0;render();markDirty()"></div>
-      <div class="dr" style="border:none">
-        <div><div class="dk">STCG — Equity / Equity MF (Sec 111A)</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">20% flat · No exemption · Holding ≤ 12 months</div></div>
-        <input type="number" value="${stcgVal}" min="0" step="1000"
-          style="width:110px;background:var(--bg4);border:1px solid rgba(248,113,113,.3);border-radius:var(--rs);padding:5px 8px;color:var(--red);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
-          onchange="D.otherIncome.stcgEquity=parseInt(this.value)||0;render();markDirty()"></div>
-    </div>
-    <div class="dr" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:10px">
-      <span class="dk">Slab Income (excl CG)</span><span class="dv">${inrFull(C.otherInc)}</span></div>
-    <div class="dr" style="border:none">
-      <span class="dk">Capital Gains (gross)</span>
-      <span class="dv gold">${inrFull(ltcgVal+stcgVal)}</span></div>`;
+  tbody.innerHTML += `<tr class="total-row">
+    <td colspan="4">Total</td>
+    <td class="num">${inrFull(totGross)}</td>
+    <td class="num">${inrFull(totGST)}</td>
+    <td class="num">${inrFull(totTDS)}</td>
+    <td class="num">${inrFull(totNet)}</td>
+    <td></td>
+  </tr>`;
 }
+
 
 function onRentEdit(el) {
   // el has data-pid and data-month (0-11) for specific month edit
