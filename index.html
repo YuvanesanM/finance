@@ -820,13 +820,15 @@ function calc() {
       { label: '30%  (above ₹10L)', rate: '30%', bandIncome: Math.max(0, inc - 1000000),                         tax: Math.max(0, inc-1000000) * 0.30,                      color: '#f87171' },
     ];
   }
-  const bandTaxSumOld = slabBands(taxableIncome).reduce((s,b)=>s+b.tax, 0);
-  const agriAdjOld    = Math.round(rawTax - bandTaxSumOld);
+
 
   // Partial integration
   const taxOnTotal = taxOnAmount(totalForRate);
   const taxOnAgri  = taxOnAmount(agriGross);
   const rawTax     = taxOnTotal - taxOnAgri;
+  // Band display helpers — must come AFTER rawTax is defined
+  const bandTaxSumOld = slabBands(taxableIncome).reduce((s,b) => s + b.tax, 0);
+  const agriAdjOld    = Math.round(rawTax - bandTaxSumOld);
 
   // Surcharge — 10% only if total income (incl agri) > ₹50L
   const surchRate   = totalForRate > 5000000 ? (totalForRate > 10000000 ? 0.15 : 0.10) : 0;
