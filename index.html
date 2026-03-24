@@ -295,7 +295,7 @@ td.prop-name{color:var(--text);font-weight:500}
 <main class="main">
 
 <!-- ── OVERVIEW ── -->
-<div id="overview" class="panel active">
+<div id="overview" class="panel active" class="panel active">
   <div class="page-hd">
     <div><div class="page-title">Financial <em>Overview</em></div><div class="page-sub">Live computed from GitHub data · AY 2026-27</div></div>
   </div>
@@ -666,9 +666,9 @@ async function loadData(forceRefresh = false) {
     if (res.status === 401) { showLogin('Session expired — please log in again'); return; }
     if (!res.ok) throw new Error('HTTP ' + res.status);
     D = await res.json();
+    const _lo = document.getElementById('loadingOverlay'); if(_lo) _lo.style.display = 'none';
     setSyncStatus('ok', 'Live · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
     render();
-    const _lo = document.getElementById('loadingOverlay'); if(_lo) _lo.style.display = 'none';
   } catch(e) {
     setSyncStatus('err', 'Error — retry');
     const _lo2 = document.getElementById('loadingOverlay'); if(_lo2) _lo2.style.display = 'none';
@@ -729,6 +729,7 @@ function openEditor() {
 // ─── CALCULATIONS ─────────────────────────────────────
 function calc() {
   if (!D) return {};
+  try {
   const props = D.properties;
 
   // Rental totals
@@ -1012,10 +1013,11 @@ function calc() {
     collectionRate: totalMonths > 0 ? Math.round(paidMonths/totalMonths*100) : 0,
     cityMap, allTDS: totalTDS + salTDS
   };
+  } catch(e) {
+    console.error('calc() error:', e);
+    return {};
+  }
 }
-
-
-// ─── FORMATTING ──────────────────────────────────────────────────────
 function inr(n) {
   n = Math.round(n);
   if (Math.abs(n) >= 10000000) return '₹' + (n/10000000).toFixed(2) + 'Cr';
@@ -1023,6 +1025,9 @@ function inr(n) {
   return '₹' + n.toLocaleString('en-IN');
 }
 function inrFull(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+const MONTHS_SHORT = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const MONTHS_LONG  = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 
 // ─── REGIME STATE ────────────────────────────────────────────────────
 let activeRegime = 'old';
@@ -1037,18 +1042,23 @@ function switchRegime(r) {
 // ─── RENDER ENGINE ────────────────────────────────────────────────────
 function render() {
   if (!D) return;
-  const C = calc();
-  renderOverview(C);
-  renderIncomeTable();
-  renderProperty(C);
-  renderMonthTracker(C);
-  renderTax(C);
-  renderGST(C);
-  renderAdvanceTax(C);
-  renderDeductions(C);
-  renderSalary();
-  renderAgri();
-  updateNavBadges(C);
+  try {
+    const C = calc();
+    renderOverview(C);
+    renderIncomeTable();
+    renderProperty(C);
+    renderMonthTracker(C);
+    renderTax(C);
+    renderGST(C);
+    renderAdvanceTax(C);
+    renderDeductions(C);
+    renderSalary();
+    renderAgri();
+    updateNavBadges(C);
+  } catch(e) {
+    console.error('render() error:', e);
+    showToast('Render error: ' + e.message, 'err');
+  }
 }
 
 function updateNavBadges(C) {
@@ -1101,7 +1111,6 @@ function renderOverview(C) {
 
   // Monthly stacked bar
   const top3 = [...D.properties].sort((a,b)=>b.months.reduce((s,m)=>s+m.rent,0)-a.months.reduce((s,m)=>s+m.rent,0)).slice(0,3);
-  const MONTHS_SHORT = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
   const colors = ['#c9a84c','#2dd4bf','#7c6caf'];
   renderChart('monthlyBar','bar',{
     labels: MONTHS_SHORT,
@@ -1317,8 +1326,6 @@ function renderMonthTracker(C) {
   document.getElementById('mt-recd').textContent = inr(C.paidAmt);
   document.getElementById('mt-pend').textContent = inr(C.pendAmt);
   document.getElementById('mt-rate').textContent = C.collectionRate+'%';
-  const MONTHS_FULL = ['APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB','MAR'];
-  const MONTHS_LONG = ['April','May','June','July','August','September','October','November','December','January','February','March'];
   const hm=document.getElementById('monthHeatmap'); hm.innerHTML='';
   D.properties.forEach(p=>{
     const row=document.createElement('div');
