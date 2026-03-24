@@ -809,7 +809,9 @@ function calc() {
     return t;
   }
 
-  // Income in each slab band (for chart display) — based on taxable income
+  // Slab bands — income falling in each band of TAXABLE income
+  // Band taxes are direct (rate × band income)
+  // Final net tax = partial integration result (agri adj shown separately)
   function slabBands(inc) {
     return [
       { label: 'Nil  (0 – ₹3L)',    rate: '0%',  bandIncome: Math.min(inc, 300000),                              tax: 0,                                                    color: '#4a5568' },
@@ -818,6 +820,8 @@ function calc() {
       { label: '30%  (above ₹10L)', rate: '30%', bandIncome: Math.max(0, inc - 1000000),                         tax: Math.max(0, inc-1000000) * 0.30,                      color: '#f87171' },
     ];
   }
+  const bandTaxSumOld = slabBands(taxableIncome).reduce((s,b)=>s+b.tax, 0);
+  const agriAdjOld    = Math.round(rawTax - bandTaxSumOld);
 
   // Partial integration
   const taxOnTotal = taxOnAmount(totalForRate);
@@ -916,15 +920,17 @@ function calc() {
   // New regime slab bands for chart
   function newSlabBands(inc) {
     return [
-      { label: 'Nil  (0 – ₹3L)',     rate:'0%',  bandIncome: Math.min(inc,300000),                               tax: 0,                                                        color:'#4a5568' },
-      { label: '5%   (₹3L – ₹7L)',   rate:'5%',  bandIncome: Math.max(0,Math.min(inc,700000) -300000),            tax: Math.max(0,Math.min(inc,700000)-300000)  *0.05,           color:'#60a5fa' },
-      { label: '10%  (₹7L – ₹10L)',  rate:'10%', bandIncome: Math.max(0,Math.min(inc,1000000)-700000),            tax: Math.max(0,Math.min(inc,1000000)-700000) *0.10,           color:'#818cf8' },
-      { label: '15%  (₹10L – ₹12L)', rate:'15%', bandIncome: Math.max(0,Math.min(inc,1200000)-1000000),           tax: Math.max(0,Math.min(inc,1200000)-1000000)*0.15,           color:'#fbbf24' },
-      { label: '20%  (₹12L – ₹15L)', rate:'20%', bandIncome: Math.max(0,Math.min(inc,1500000)-1200000),           tax: Math.max(0,Math.min(inc,1500000)-1200000)*0.20,           color:'#fb923c' },
-      { label: '30%  (above ₹15L)',   rate:'30%', bandIncome: Math.max(0,inc-1500000),                             tax: Math.max(0,inc-1500000)*0.30,                             color:'#f87171' },
+      { label: 'Nil  (0 – ₹3L)',     rate: '0%',  bandIncome: Math.min(inc,300000),                             tax: 0,                                                    color:'#4a5568' },
+      { label: '5%   (₹3L – ₹7L)',   rate: '5%',  bandIncome: Math.max(0,Math.min(inc,700000) -300000),          tax: Math.max(0,Math.min(inc,700000)-300000)  *0.05,       color:'#60a5fa' },
+      { label: '10%  (₹7L – ₹10L)',  rate: '10%', bandIncome: Math.max(0,Math.min(inc,1000000)-700000),          tax: Math.max(0,Math.min(inc,1000000)-700000) *0.10,       color:'#818cf8' },
+      { label: '15%  (₹10L – ₹12L)', rate: '15%', bandIncome: Math.max(0,Math.min(inc,1200000)-1000000),         tax: Math.max(0,Math.min(inc,1200000)-1000000)*0.15,       color:'#fbbf24' },
+      { label: '20%  (₹12L – ₹15L)', rate: '20%', bandIncome: Math.max(0,Math.min(inc,1500000)-1200000),         tax: Math.max(0,Math.min(inc,1500000)-1200000)*0.20,       color:'#fb923c' },
+      { label: '30%  (above ₹15L)',   rate: '30%', bandIncome: Math.max(0,inc-1500000),                           tax: Math.max(0,inc-1500000)*0.30,                         color:'#f87171' },
     ];
   }
-  const slabsNew = newSlabBands(taxableNew);
+  const slabsNew      = newSlabBands(taxableNew);
+  const bandTaxSumNew = slabsNew.reduce((s,b) => s + b.tax, 0);
+  const agriAdjNew    = Math.round(rawTaxNew - bandTaxSumNew);
 
   // ── Capital Gains Tax (both regimes — same rates) ──────────────────
   // Surcharge on CG capped at 15% (both 112A and 111A)
@@ -979,6 +985,8 @@ function calc() {
     slabsNew,
     taxSaving:     Math.round(totalTaxNew - totalTax),
     betterRegime:  totalTax <= totalTaxNew ? 'old' : 'new',
+    bandTaxSumOld, agriAdjOld,
+    bandTaxSumNew, agriAdjNew,
     // Capital gains
     ltcgGross, ltcgExempt, ltcgTaxable, ltcgAfterShortfall,
     stcgEquity, basicExemptShortfall,
@@ -1353,8 +1361,11 @@ function renderTax(C) {
   }
 
   // Slab calc
-  const slabs = isNew ? C.slabsNew : C.slabs;
-  const totalBandIncome = slabs.reduce((s,sl)=>s+sl.bandIncome, 0);
+  const slabs         = isNew ? C.slabsNew    : C.slabs;
+  const bandTaxSum    = isNew ? C.bandTaxSumNew : C.bandTaxSumOld;
+  const agriAdj       = isNew ? C.agriAdjNew   : C.agriAdjOld;
+  const totalBandIncome = slabs.reduce((s,sl) => s + sl.bandIncome, 0);
+
   document.getElementById('slabCalc').innerHTML = slabs.map(s => `
     <div class="slab-row">
       <div class="slab-range-box">
@@ -1366,10 +1377,25 @@ function renderTax(C) {
         <div class="slab-bar">
           <div class="slab-bar-fill" style="width:${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}%;background:${s.color}"></div>
         </div>
-        <div style="font-size:9px;color:var(--text3);margin-top:2px">${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}% of taxable income</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px">
+          ${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}% of taxable income
+        </div>
       </div>
-      <div class="slab-amt" style="color:${s.color}">${s.tax>0?inrFull(s.tax):'—'}</div>
+      <div class="slab-amt" style="color:${s.color}">${s.tax > 0 ? inrFull(s.tax) : '—'}</div>
     </div>`).join('') + `
+    <div style="border-top:1px solid var(--border2);margin-top:10px;padding-top:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">
+        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">SUM OF BAND TAXES</span>
+        <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">${inrFull(bandTaxSum)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">AGRI INTEGRATION ADJ (Sec 10(1))</span>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px">Tax on ₹${inr(isNew?C.totalForRateNew:C.totalForRate)} − Tax on agri ₹${inr(C.agriGross)} − Band sum</div>
+        </div>
+        <span style="font-family:var(--font-m);font-size:13px;color:var(--amber)">+ ${inrFull(agriAdj)}</span>
+      </div>
+    </div>` + `
     <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">BASE INCOME TAX</span>
