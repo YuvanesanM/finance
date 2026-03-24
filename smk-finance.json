@@ -14,7 +14,7 @@
     "section80D": 0,
     "section80TTB": 0,
     "profTax": 0,
-    "notes80C": "LIC / Investments — max claimed",
+    "notes80C": "LIC / Investments \u2014 max claimed",
     "notes80D": "Verify medical insurance premium",
     "notes80TTB": "Check SB/FD interest deduction"
   },
@@ -89,14 +89,18 @@
     "bankDeposited": 576500,
     "cashExpenses": 143800,
     "exempt": true,
-    "notes": "Mango & crop sales — Section 10(1) exempt. Used for slab rate computation only."
+    "notes": "Mango & crop sales \u2014 Section 10(1) exempt. Used for slab rate computation only."
   },
   "otherIncome": {
     "sbInterest": 606,
     "dividends": 0,
     "depositInterest": 3250,
     "pmsIncome": 0,
-    "notes": "SB interest TMB+SBI. PMS/MF dividends to be confirmed."
+    "notes": "SB interest TMB+SBI. PMS/MF dividends to be confirmed.",
+    "ltcgEquity": 0,
+    "stcgEquity": 0,
+    "_ltcgNote": "LTCG on equity/equity MF u/s 112A @ 12.5% (FA 2024). Enter gross amount \u2014 \u20b91.25L exemption auto-applied.",
+    "_stcgNote": "STCG on equity/equity MF u/s 111A @ 20% (FA 2024). Enter taxable amount."
   },
   "properties": [
     {
@@ -108,7 +112,7 @@
       "type": "commercial",
       "tdsRate": 0.1,
       "gstRate": 0.18,
-      "emoji": "🏭",
+      "emoji": "\ud83c\udfed",
       "months": [
         {
           "month": "April",
@@ -181,7 +185,7 @@
       "type": "commercial",
       "tdsRate": 0.1,
       "gstRate": 0.18,
-      "emoji": "🏢",
+      "emoji": "\ud83c\udfe2",
       "months": [
         {
           "month": "April",
@@ -252,9 +256,9 @@
       "location": "OMR, Chennai",
       "sheet": "THURAIPAKA_SMK_FLAT_H43",
       "type": "residential",
-      "tdsRate": 0,
-      "gstRate": 0,
-      "emoji": "🏠",
+      "tdsRate": 0.0,
+      "gstRate": 0.0,
+      "emoji": "\ud83c\udfe0",
       "months": [
         {
           "month": "April",
@@ -327,7 +331,7 @@
       "type": "commercial",
       "tdsRate": 0.1,
       "gstRate": 0.18,
-      "emoji": "🏭",
+      "emoji": "\ud83c\udfed",
       "months": [
         {
           "month": "April",
@@ -400,7 +404,7 @@
       "type": "commercial",
       "tdsRate": 0.1,
       "gstRate": 0.18,
-      "emoji": "🏪",
+      "emoji": "\ud83c\udfea",
       "months": [
         {
           "month": "April",
@@ -473,7 +477,7 @@
       "type": "commercial",
       "tdsRate": 0.1,
       "gstRate": 0.18,
-      "emoji": "🏗",
+      "emoji": "\ud83c\udfd7",
       "months": [
         {
           "month": "April",
@@ -546,7 +550,7 @@
       "type": "commercial",
       "tdsRate": 0.1,
       "gstRate": 0.18,
-      "emoji": "🏗",
+      "emoji": "\ud83c\udfd7",
       "months": [
         {
           "month": "April",
@@ -617,9 +621,9 @@
       "location": "Madhavaram, Chennai",
       "sheet": "SCI_MADHAVARAM_GODOWN",
       "type": "commercial",
-      "tdsRate": 0,
+      "tdsRate": 0.0,
       "gstRate": 0.18,
-      "emoji": "📦",
+      "emoji": "\ud83d\udce6",
       "months": [
         {
           "month": "April",
@@ -690,9 +694,9 @@
       "location": "Madhavaram, Chennai",
       "sheet": "DM_MADHAVARAM_OFF",
       "type": "commercial",
-      "tdsRate": 0,
+      "tdsRate": 0.0,
       "gstRate": 0.18,
-      "emoji": "🏢",
+      "emoji": "\ud83c\udfe2",
       "months": [
         {
           "month": "April",
@@ -765,7 +769,7 @@
       "type": "commercial",
       "tdsRate": 0.1,
       "gstRate": 0.18,
-      "emoji": "🔧",
+      "emoji": "\ud83d\udd27",
       "months": [
         {
           "month": "April",
@@ -836,9 +840,9 @@
       "location": "Udangudi Bazaar",
       "sheet": "UDANGUDI_SHOP1",
       "type": "commercial",
-      "tdsRate": 0,
+      "tdsRate": 0.0,
       "gstRate": 0.18,
-      "emoji": "💍",
+      "emoji": "\ud83d\udc8d",
       "months": [
         {
           "month": "April",
@@ -909,9 +913,9 @@
       "location": "Udangudi Bazaar",
       "sheet": "UDANDUDI_SHOP2",
       "type": "commercial",
-      "tdsRate": 0,
+      "tdsRate": 0.0,
       "gstRate": 0.18,
-      "emoji": "🛒",
+      "emoji": "\ud83d\uded2",
       "months": [
         {
           "month": "April",
@@ -984,7 +988,7 @@
       "type": "commercial",
       "tdsRate": 0.1,
       "gstRate": 0.18,
-      "emoji": "🏞",
+      "emoji": "\ud83c\udfde",
       "months": [
         {
           "month": "April",
