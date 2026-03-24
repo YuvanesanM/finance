@@ -227,6 +227,7 @@ td.prop-name{color:var(--text);font-weight:500}
 </style>
 </head>
 <body>
+<div class="toast" id="toast"></div>
 <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 <div class="login-overlay" id="loginOverlay" style="display:none">
   <div class="login-box">
@@ -406,16 +407,16 @@ td.prop-name{color:var(--text);font-weight:500}
   <div class="card">
     <div class="card-hd"><span class="card-title">IT Computation — House Property Schedule</span><span class="card-tag">Auto-computed</span></div>
     <div class="tw"><table id="hpTable">
-      <thead><tr>
-        <th>Property</th><th>Tenant</th><th>Location</th>
-        <th style="text-align:right">Gross Rent (₹)</th>
-        <th style="text-align:right">30% Repair (₹)</th>
-        <th style="text-align:right">Net IT (₹)</th>
-        <th style="text-align:right">TDS (₹)</th>
-        <th>Type</th>
-      </tr></thead>
+      <thead><tr><th>Property</th><th>Tenant</th><th>Location</th><th style="text-align:right">Monthly Rent</th><th style="text-align:right">Annual Rent</th><th style="text-align:right">30% Dedn</th><th style="text-align:right">Net HP</th><th style="text-align:right">TDS</th><th>Type</th></tr></thead>
       <tbody id="hpTableBody"></tbody>
     </table></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-hd"><span class="card-title">Monthly Rent <em>Editor</em></span><span class="card-tag">Per Property · Per Month</span></div>
+    <div class="card-body">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px;font-family:var(--font-m)">Edit individual month rents below. Changes update the summary table and all tax calculations live.</div>
+      <div id="monthRentGrid"></div>
+    </div>
   </div>
   <div class="g2">
     <div class="card" style="margin:0">
@@ -1158,12 +1159,20 @@ function renderIncomeTable() {
 }
 
 function onRentEdit(el) {
-  const pid    = el.dataset.pid;
-  const newVal = parseFloat(el.textContent.replace(/,/g,''))||0;
-  const prop   = D.properties.find(p=>p.id===pid);
+  // el has data-pid and data-month (0-11) for specific month edit
+  // or just data-pid for annual edit (spreads monthly rate to all active months)
+  const pid      = el.dataset.pid;
+  const monthIdx = el.dataset.month !== undefined ? parseInt(el.dataset.month) : -1;
+  const newVal   = parseFloat(el.textContent.replace(/[₹,]/g,''))||0;
+  const prop     = D.properties.find(p=>p.id===pid);
   if (!prop) return;
-  const activeMos = prop.months.filter(m=>m.rent>0).length||12;
-  prop.months.forEach(m => { if (m.rent>0) m.rent = newVal/activeMos; });
+  if (monthIdx >= 0) {
+    // Per-month edit
+    prop.months[monthIdx].rent = newVal;
+  } else {
+    // Annual edit — treat newVal as monthly rent, apply to all months
+    prop.months.forEach(m => { m.rent = newVal; });
+  }
   markDirty();
   render();
 }
@@ -1175,27 +1184,66 @@ function markDirty() {
 }
 
 // ─── PROPERTY ─────────────────────────────────────────────────────────
+const MONTHS_SHORT = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+
 function renderProperty(C) {
   document.getElementById('hp-gross').textContent = inr(C.grossRent);
   document.getElementById('hp-repair').textContent= inr(C.repair30);
   document.getElementById('hp-net').textContent   = inr(C.netHP);
   document.getElementById('hp-tds').textContent   = inr(C.totalTDS);
+
+  // ── Summary table (annual totals, editable monthly rent) ──────────
   const tbody = document.getElementById('hpTableBody'); tbody.innerHTML='';
   let tg=0,tr=0,tn=0,tt=0;
   D.properties.forEach(p=>{
     const gr=p.months.reduce((s,m)=>s+m.rent,0);
     const r30=gr*0.30; const net=gr-r30; const tds=gr*p.tdsRate;
     tg+=gr;tr+=r30;tn+=net;tt+=tds;
+    // Show typical monthly rent (most common non-zero value)
+    const nonZero = p.months.filter(m=>m.rent>0).map(m=>m.rent);
+    const typicalMonthly = nonZero.length ? nonZero.sort((a,b)=>b-a)[0] : 0;
     tbody.innerHTML+=`<tr>
-      <td class="prop-name">${p.emoji} ${p.name}</td><td style="color:var(--text2)">${p.tenant}</td>
+      <td class="prop-name">${p.emoji} ${p.name}</td>
+      <td style="color:var(--text2)">${p.tenant}</td>
       <td style="color:var(--text2);font-size:11px">${p.location}</td>
-      <td class="num">${inrFull(gr)}</td><td class="num" style="color:var(--red)">${inrFull(r30)}</td>
+      <td class="num"><span class="editable" contenteditable="true"
+          data-pid="${p.id}"
+          style="cursor:text;padding:2px 4px;border-radius:3px;border-bottom:1px dashed var(--border2)"
+          onblur="onRentEdit(this)"
+          onfocus="this.style.background='var(--bg4)'"
+          onblur="this.style.background='';onRentEdit(this)"
+        >${Math.round(typicalMonthly).toLocaleString('en-IN')}</span>
+        <span style="font-size:9px;color:var(--text3)">/mo</span>
+      </td>
+      <td class="num">${inrFull(gr)}</td>
+      <td class="num" style="color:var(--red)">${inrFull(r30)}</td>
       <td class="num" style="color:var(--gold)">${inrFull(net)}</td>
       <td class="num" style="color:var(--green)">${tds>0?inrFull(tds):'—'}</td>
       <td>${p.type==='commercial'?'<span class="badge bb">Comm</span>':'<span class="badge bgold">Resi</span>'}</td>
     </tr>`;
   });
-  tbody.innerHTML+=`<tr class="total-row"><td colspan="3">TOTAL</td><td class="num">${inrFull(tg)}</td><td class="num">${inrFull(tr)}</td><td class="num">${inrFull(tn)}</td><td class="num">${inrFull(tt)}</td><td></td></tr>`;
+  tbody.innerHTML+=`<tr class="total-row"><td colspan="4">TOTAL</td><td class="num">${inrFull(tg)}</td><td class="num">${inrFull(tr)}</td><td class="num">${inrFull(tn)}</td><td class="num">${inrFull(tt)}</td><td></td></tr>`;
+
+  // ── Per-month rent grid (expandable per property) ────────────────
+  const mgrid = document.getElementById('monthRentGrid');
+  if (mgrid) {
+    mgrid.innerHTML = '';
+    D.properties.forEach(p => {
+      const div = document.createElement('div');
+      div.style.cssText = 'margin-bottom:16px';
+      div.innerHTML = `<div style="font-size:11px;font-family:var(--font-m);color:var(--text2);margin-bottom:6px">${p.emoji} ${p.name} <span style="color:var(--text3);font-size:10px">${p.tenant}</span></div>
+        <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:4px">
+          ${p.months.map((m,i) => `
+            <div style="text-align:center">
+              <div style="font-size:9px;color:var(--text3);margin-bottom:2px">${MONTHS_SHORT[i]}</div>
+              <input type="number" value="${Math.round(m.rent)}" min="0" step="100"
+                style="width:100%;background:var(--bg4);border:1px solid ${m.rent>0?'var(--border2)':'var(--border)'};border-radius:4px;padding:4px 2px;color:${m.rent>0?'var(--gold)':'var(--text3)'};font-family:var(--font-m);font-size:10px;text-align:center;outline:none"
+                onchange="D.properties.find(p=>p.id==='${p.id}').months[${i}].rent=parseFloat(this.value)||0;render();markDirty()">
+            </div>`).join('')}
+        </div>`;
+      mgrid.appendChild(div);
+    });
+  }
 
   const cities = Object.entries(C.cityMap).sort((a,b)=>b[1]-a[1]);
   const cc=['#c9a84c','#2dd4bf','#7c6caf','#60a5fa','#f87171'];
@@ -1236,7 +1284,14 @@ function renderMonthTracker(C) {
       const cell=document.createElement('div');
       cell.className='month-cell '+cls;
       cell.innerHTML=`${MONTHS_FULL[i]}<span class="tooltip">${p.name} — ${MONTHS_LONG[i]}<br>${m.rent>0?inrFull(m.rent):'No rent'} · ${m.paid?'✓ Paid':'Pending'}</span>`;
-      cell.onclick=()=>{ m.paid=!m.paid; renderMonthTracker(calc()); markDirty(); };
+      cell.onclick=()=>{
+        // Toggle paid status directly on data object
+        const propRef = D.properties.find(pr=>pr.id===p.id);
+        if (propRef) propRef.months[i].paid = !propRef.months[i].paid;
+        markDirty();
+        renderMonthTracker(calc());  // re-render tracker only
+        renderOverview(calc());      // update KPI tiles
+      };
       row.appendChild(cell);
     });
     hm.appendChild(row);
