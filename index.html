@@ -659,10 +659,26 @@ function handleAuthError() {
 
 // ─── GITHUB SYNC ──────────────────────────────────────
 async function loadData(forceRefresh = false) {
-  setSyncStatus('loading', 'Fetching...');
+  setSyncStatus('loading', 'Waking server...');
   try {
     const url = PROXY_URL + '/finance' + (forceRefresh ? '?t=' + Date.now() : '');
-    const res = await fetch(url, { headers: authHdr() });
+    // Render free tier sleeps — use AbortController with 65s timeout
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 65000);
+    let attempt = 0;
+    let res;
+    while (attempt < 3) {
+      try {
+        setSyncStatus('loading', attempt > 0 ? `Retrying (${attempt}/2)...` : 'Loading data...');
+        res = await fetch(url, { headers: authHdr(), signal: controller.signal });
+        break;
+      } catch(fetchErr) {
+        attempt++;
+        if (attempt >= 3 || fetchErr.name === 'AbortError') throw fetchErr;
+        await new Promise(r => setTimeout(r, 3000)); // wait 3s before retry
+      }
+    }
+    clearTimeout(timer);
     if (res.status === 401) { showLogin('Session expired — please log in again'); return; }
     if (!res.ok) throw new Error('HTTP ' + res.status);
     D = await res.json();
@@ -670,9 +686,10 @@ async function loadData(forceRefresh = false) {
     setSyncStatus('ok', 'Live · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
     render();
   } catch(e) {
-    setSyncStatus('err', 'Error — retry');
+    setSyncStatus('err', 'Error — click to retry');
     const _lo2 = document.getElementById('loadingOverlay'); if(_lo2) _lo2.style.display = 'none';
-    showToast('Failed to load data: ' + e.message, 'err');
+    const msg = e.name === 'AbortError' ? 'Server waking up — click retry in 30s' : ('Load failed: ' + e.message);
+    showToast(msg, 'err');
   }
 }
 
