@@ -1352,7 +1352,7 @@ function renderMonthTracker(C) {
       const cls=m.rent===0?'zero':m.paid?'paid':'unpaid';
       const cell=document.createElement('div');
       cell.className='month-cell '+cls;
-      cell.innerHTML=`${MONTHS_FULL[i]}<span class="tooltip">${p.name} — ${MONTHS_LONG[i]}<br>${m.rent>0?inrFull(m.rent):'No rent'} · ${m.paid?'✓ Paid':'Pending'}</span>`;
+      cell.innerHTML=`${MONTHS_SHORT[i]}<span class="tooltip">${p.name} — ${MONTHS_LONG[i]}<br>${m.rent>0?inrFull(m.rent):'No rent'} · ${m.paid?'✓ Paid':'Pending'}</span>`;
       cell.onclick=()=>{
         // Toggle paid status directly on data object
         const propRef = D.properties.find(pr=>pr.id===p.id);
