@@ -622,8 +622,7 @@ async function loadData(forceRefresh = false) {
   setSyncStatus('loading', 'Fetching...');
   try {
     const url = PROXY_URL + '/finance' + (forceRefresh ? '?t=' + Date.now() : '');
-    const res = await fetch(url, { headers: authHeaders() });
-    if (res.status === 401) { handleAuthError(); return; }
+    const res = await fetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     D = await res.json();
     setSyncStatus('ok', 'Live · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
@@ -645,20 +644,18 @@ async function saveToGitHub() {
   try {
     D._meta.lastUpdated = new Date().toISOString().split('T')[0];
     // Step 1: get SHA
-    const shaRes = await fetch(PROXY_URL + '/finance/sha', { headers: authHeaders() });
-    if (shaRes.status === 401) { handleAuthError(); return; }
+    const shaRes = await fetch(PROXY_URL + '/finance/sha');
     const { sha } = await shaRes.json();
     // Step 2: send data object (proxy handles encryption)
     const putRes = await fetch(PROXY_URL + '/finance', {
       method: 'PUT',
-      headers: authHeaders(),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: 'SMK Finance Dashboard update — ' + new Date().toLocaleString('en-IN'),
         sha,
         data: D
       })
     });
-    if (putRes.status === 401) { handleAuthError(); return; }
     if (!putRes.ok) { const e = await putRes.json(); throw new Error(e.error || 'Save failed'); }
     setSyncStatus('ok', 'Saved · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
     showToast('✓ Saved to GitHub successfully', 'ok');
@@ -1248,15 +1245,9 @@ function showToast(msg, type = 'info') {
 window.addEventListener('beforeunload', e => { if (pendingChanges) { e.preventDefault(); e.returnValue = ''; } });
 
 // ─── BOOT ─────────────────────────────────────────────
-if (authToken) {
-  // Token exists in session — skip login, load directly
-  document.getElementById('loginScreen').style.display = 'none';
-  loadData();
-} else {
-  // Show login, hide loading overlay
-  document.getElementById('loadingOverlay').style.display = 'none';
-  document.getElementById('loginPass').focus();
-}
+// Skip login for now — load directly
+document.getElementById('loginScreen').style.display = 'none';
+loadData();
 </script>
 </body>
 </html>
