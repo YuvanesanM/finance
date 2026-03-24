@@ -666,7 +666,7 @@ let authToken    = sessionStorage.getItem('smk_token') || null;
 function handleAuthError() {
   authToken = null;
   sessionStorage.removeItem('smk_token');
-  document.getElementById('loginScreen').style.display = 'flex';
+  const ls = document.getElementById('loginScreen'); if(ls) ls.style.display = 'flex';
   document.getElementById('loginPass').value = '';
   document.getElementById('loginErr').textContent = 'Session expired — please log in again';
 }
@@ -1045,11 +1045,10 @@ function renderOverview(C) {
   document.getElementById('kpi-advance').textContent  = inr(C.grandBalanceTax);
   document.getElementById('kpi-tds').textContent      = inr(C.allTDS);
   document.getElementById('kpi-eff-rate').textContent = (C.taxableIncome > 0 ? (C.totalTax/C.taxableIncome*100).toFixed(1) : 0) + '% eff';
-  document.getElementById('kpi-rental').textContent   = inr(C.grossRent);
-  document.getElementById('kpi-rental-sub') && (document.getElementById('kpi-rental-sub').textContent = D.properties.length + ' active properties');
-  document.getElementById('ov-gross').textContent    = inrFull(C.grossTotal);
+  // kpi-rental removed — grossRent shown in property panel KPI tiles
+  const ovGross = document.getElementById('ov-gross'); if(ovGross) ovGross.textContent = inrFull(C.grossTotal);
   document.getElementById('ov-80c').textContent       = '− ' + inrFull(D.deductions.section80C);
-  document.getElementById('ov-taxable2').textContent  = inrFull(C.taxableIncome);
+  const ovTax2 = document.getElementById('ov-taxable2'); if(ovTax2) ovTax2.textContent = inrFull(C.taxableIncome);
   document.getElementById('ov-eff').textContent       = (C.taxableIncome > 0 ? (C.totalTax/C.taxableIncome*100).toFixed(1) : 0) + '%';
 
   // Donut
@@ -1252,7 +1251,7 @@ function onRentEdit(el) {
 function updateOverviewKPIs(C) {
   document.getElementById('kpi-taxable').textContent = inr(C.taxableIncome);
   document.getElementById('kpi-tax').textContent = inr(C.totalTax);
-  document.getElementById('kpi-rental').textContent = inr(C.grossRent);
+  // kpi-rental removed
   document.getElementById('kpi-tds').textContent = inr(C.allTDS);
 }
 
