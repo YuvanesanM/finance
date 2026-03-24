@@ -468,18 +468,18 @@ td.prop-name{color:var(--text);font-weight:500}
   </div>
   <div class="g2">
     <div class="card" style="margin:0">
-      <div class="card-hd"><span class="card-title">Slab-wise Tax Calculation</span><span class="card-tag" id="slab-regime-tag">Old Regime · Sr Citizen</span></div>
+      <div class="card-hd"><span class="card-title">Applicable Tax Slabs</span><span class="card-tag" id="slab-regime-tag">Old Regime · Sr Citizen</span></div>
       <div class="card-body" id="slabCalc"></div>
     </div>
     <div class="card" style="margin:0">
-      <div class="card-hd"><span class="card-title">Income Computation</span><span class="card-tag">IT Return Summary</span></div>
+      <div class="card-hd"><span class="card-title">Tax Computation</span><span class="card-tag">Part B-TTI · IT Return</span></div>
       <div class="card-body" id="incomeComp"></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-hd"><span class="card-title">Tax Optimisation Checklist</span><span class="card-tag">Planning Levers</span></div>
+    <div class="card-hd"><span class="card-title">Old vs New Regime Comparison</span><span class="card-tag">AY 2026-27</span></div>
     <div class="tw"><table>
-      <thead><tr><th>Section</th><th>Description</th><th style="text-align:right">Max Limit</th><th style="text-align:right">Claimed</th><th>Saving</th><th>Action</th></tr></thead>
+      <thead><tr><th>Regime</th><th>Key Features</th><th style="text-align:right">Gross Income</th><th style="text-align:right">Taxable Income</th><th style="text-align:right">Total Tax</th><th>Verdict</th></tr></thead>
       <tbody id="optimTable"></tbody>
     </table></div>
   </div>
@@ -1370,179 +1370,172 @@ function renderMonthTracker(C) {
 // ─── TAX COMPUTATION ──────────────────────────────────────────────────
 function renderTax(C) {
   const isNew  = activeRegime === 'new';
-  const tax    = isNew ? C.totalTaxNew    : C.totalTax;
-  const bal    = isNew ? C.balanceTaxNew  : C.balanceTax;
-  const ti     = isNew ? C.taxableNew     : C.taxableIncome;
-  const gtax   = isNew ? C.grandTotalTaxNew  : C.grandTotalTax;
-  const gbal   = isNew ? C.grandBalanceTaxNew: C.grandBalanceTax;
-  const forRate= isNew ? C.totalForRateNew   : C.totalForRate;
-  const rawTax = isNew ? C.rawTaxNew         : C.rawTax;
-  const agriTx = isNew ? C.agriTaxNew        : C.agriTaxOld;
-  const totTx  = isNew ? C.taxOnTotalNew     : C.taxOnTotalOld;
-  const slabs  = isNew ? C.slabsNew          : C.slabs;
-  const surch  = isNew ? C.surchargeNew      : C.surcharge;
-  const cess_v = isNew ? C.cessNew           : C.cess;
+  const gtax   = isNew ? C.grandTotalTaxNew   : C.grandTotalTax;
+  const gbal   = isNew ? C.grandBalanceTaxNew  : C.grandBalanceTax;
+  const ti     = isNew ? C.taxableNew          : C.taxableIncome;
+  const netInc = isNew ? C.grossTotalNew       : C.grossTotal;
+  const forRate= isNew ? C.totalForRateNew     : C.totalForRate;
+  const rawTax = isNew ? C.rawTaxNew           : C.rawTax;
+  const agriTx = isNew ? C.agriTaxNew          : C.agriTaxOld;
+  const totTx  = isNew ? C.taxOnTotalNew       : C.taxOnTotalOld;
+  const surch  = isNew ? C.surchargeNew        : C.surcharge;
+  const cess_v = isNew ? C.cessNew             : C.cess;
+  const surchR = isNew ? C.surchRateNew        : C.surchRate;
+  const bal    = isNew ? C.balanceTaxNew       : C.balanceTax;
 
-  // Update tag
+  // Update regime tag
   const tag = document.getElementById('slab-regime-tag');
   if (tag) tag.textContent = isNew ? 'New Regime · Default' : 'Old Regime · Sr Citizen';
 
-  // KPIs
-  document.getElementById('tc-hp').textContent      = isNew ? '(no 30% dedn in new regime)' : inr(C.netHP);
+  // KPI tiles
+  document.getElementById('tc-hp').textContent      = isNew ? '(no 30% dedn)' : inr(C.netHP);
   document.getElementById('tc-taxable').textContent = inr(ti);
   document.getElementById('tc-tax').textContent     = inr(gtax);
   document.getElementById('tc-balance').textContent = inr(gbal);
 
-  // Regime note
+  // Regime recommendation note
   const saving = Math.abs(C.taxSaving);
   const noteEl = document.getElementById('regime-note');
   if (noteEl) {
-    if (isNew) {
-      noteEl.innerHTML = `<strong>New Regime (Default from AY 2024-25)</strong> — No 30% HP deduction (Sec 24a) · No 80C/80D deductions · Std deduction ₹75,000 on salary · 6 slabs up to 30%<br>Sec 87A rebate ₹60,000 if income ≤ ₹12L (Budget 2025) — <em>not applicable here</em><br><span style="color:var(--red)">New Regime costs ₹${saving.toLocaleString('en-IN')} MORE — Old Regime recommended for this income profile</span>`;
-    } else {
-      noteEl.innerHTML = `<strong>Old Regime</strong> — 30% standard HP deduction (Sec 24a) · 80C ₹1.5L · 80D ₹50K (Sr Citizen) · 80TTB ₹50K available · Must explicitly opt out of new regime when filing ITR<br><span style="color:var(--green)">Old Regime SAVES ₹${saving.toLocaleString('en-IN')} vs New Regime — RECOMMENDED for this profile</span>`;
-    }
+    noteEl.innerHTML = isNew
+      ? `<strong>New Regime (Default AY 2024-25 onwards)</strong> — No 30% HP deduction · No 80C/80D · Std deduction ₹75,000 on salary · 6 slabs · Sec 87A rebate ₹60,000 if income ≤ ₹12L<br>
+         <span style="color:var(--red)">⚠ New Regime costs ₹${saving.toLocaleString('en-IN')} MORE — Old Regime recommended</span>`
+      : `<strong>Old Regime</strong> — 30% HP standard deduction (Sec 24a) · 80C ₹1.5L · 80D ₹50K (Sr Citizen) · 80TTB ₹50K · Must opt-out of new regime when filing ITR<br>
+         <span style="color:var(--green)">✓ Old Regime SAVES ₹${saving.toLocaleString('en-IN')} — RECOMMENDED for this profile</span>`;
   }
 
-  // ── Slab calculation display ─────────────────────────────────────
-  const totalBandIncome = slabs.reduce((s,sl)=>s+sl.bandIncome, 0);
+  // ── SLAB REFERENCE TABLE (not computation) ──────────────────────
+  const slabRef = isNew
+    ? [
+        { range: '₹0 – ₹3,00,000',       rate: 'NIL',  highlight: false },
+        { range: '₹3,00,001 – ₹7,00,000', rate: '5%',   highlight: false },
+        { range: '₹7,00,001 – ₹10,00,000',rate: '10%',  highlight: false },
+        { range: '₹10,00,001 – ₹12,00,000',rate: '15%', highlight: false },
+        { range: '₹12,00,001 – ₹15,00,000',rate: '20%', highlight: false },
+        { range: 'Above ₹15,00,000',       rate: '30%',  highlight: true  },
+      ]
+    : [
+        { range: '₹0 – ₹3,00,000',        rate: 'NIL',  highlight: false },
+        { range: '₹3,00,001 – ₹5,00,000', rate: '5%',   highlight: false },
+        { range: '₹5,00,001 – ₹10,00,000',rate: '20%',  highlight: false },
+        { range: 'Above ₹10,00,000',       rate: '30%',  highlight: true  },
+      ];
+
   document.getElementById('slabCalc').innerHTML =
-    `<div style="font-size:10px;font-family:var(--font-m);color:var(--text3);margin-bottom:12px;letter-spacing:.05em;padding:8px 0;border-bottom:1px solid var(--border)">
-      SLABS APPLIED ON ₹${inr(forRate)} (TAXABLE ₹${inr(ti)} + AGRICULTURE ₹${inr(C.agriGross)})
+    `<div style="font-size:9px;font-family:var(--font-m);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">
+      Applicable Slab Rates — ${isNew ? 'New Regime (Finance Act 2023)' : 'Old Regime · Senior Citizen (age > 60)'}
     </div>` +
-    slabs.map(s => `
-    <div class="slab-row">
-      <div class="slab-range-box">
-        <div style="font-size:12px;color:var(--text)">${s.label}</div>
-        <div style="font-size:10px;color:var(--text3)">Income in band: ${inrFull(s.bandIncome)}</div>
-      </div>
-      <div class="slab-pct" style="color:${s.color}">${s.rate}</div>
-      <div class="slab-bar-wrap">
-        <div class="slab-bar"><div class="slab-bar-fill" style="width:${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}%;background:${s.color}"></div></div>
-        <div style="font-size:9px;color:var(--text3);margin-top:2px">${totalBandIncome>0?(s.bandIncome/totalBandIncome*100).toFixed(1):0}% of computation base</div>
-      </div>
-      <div class="slab-amt" style="color:${s.color}">${s.tax>0?inrFull(s.tax):'—'}</div>
+    slabRef.map(s => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+      <span style="font-family:var(--font-m);font-size:12px;color:${s.highlight?'var(--text)':'var(--text2)'}">${s.range}</span>
+      <span style="font-family:var(--font-b);font-size:13px;font-weight:600;color:${s.rate==='NIL'?'var(--green)':s.highlight?'var(--red)':'var(--text)'}">${s.rate}</span>
     </div>`).join('') +
-    `<div style="border-top:1px solid var(--border2);margin-top:12px;padding-top:12px">
-      <div style="display:flex;justify-content:space-between;padding:5px 0">
-        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">TAX ON ₹${inr(forRate)}</span>
-        <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">${inrFull(totTx)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
-        <div>
-          <span style="font-family:var(--font-m);font-size:10px;color:var(--green)">LESS: TAX ON AGRICULTURE ₹${inr(C.agriGross)} — SEC 10(1)</span>
-          <div style="font-size:9px;color:var(--text3);margin-top:1px">Agriculture income is exempt — partial integration method</div>
-        </div>
-        <span style="font-family:var(--font-m);font-size:13px;color:var(--green)">− ${inrFull(agriTx)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:7px 0">
-        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">BASE INCOME TAX</span>
-        <span style="font-family:var(--font-m);font-size:14px;color:var(--text)">${inrFull(rawTax)}</span>
-      </div>
-      ${isNew && C.rebate87A > 0 ? `<div style="display:flex;justify-content:space-between;padding:5px 0">
-        <span style="font-family:var(--font-m);font-size:10px;color:var(--green)">SEC 87A REBATE</span>
-        <span style="font-family:var(--font-m);font-size:13px;color:var(--green)">− ${inrFull(C.rebate87A)}</span>
-      </div>` : ''}
-      <div style="display:flex;justify-content:space-between;padding:5px 0">
-        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">SURCHARGE</span>
-        <span style="font-family:var(--font-m);font-size:11px;color:${surch>0?'var(--amber)':'var(--green)'}">
-          ${surch>0?inrFull(surch):'NIL  (income < ₹50L)'}
-        </span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
-        <span style="font-family:var(--font-m);font-size:10px;color:var(--text3)">HEALTH & EDUCATION CESS 4%</span>
-        <span style="font-family:var(--font-m);font-size:13px;color:var(--text)">${inrFull(cess_v)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px">
-        <span style="font-family:var(--font-m);font-size:11px;color:var(--text3)">TOTAL TAX + CESS</span>
-        <span style="font-family:var(--font-d);font-size:24px;color:var(--gold)">${inrFull(tax)}</span>
-      </div>
+    `<div style="margin-top:10px;font-size:10px;color:var(--text3);font-family:var(--font-m);line-height:1.6">
+      ${isNew
+        ? 'Surcharge: 10% if income > ₹50L · Max 25% in new regime<br>Sec 87A rebate: ₹60,000 if income ≤ ₹12L (Budget 2025)'
+        : 'Surcharge: 10% if income > ₹50L · 15% if > ₹1Cr · 25% if > ₹2Cr · 37% if > ₹5Cr<br>Senior Citizen: Basic exemption ₹3,00,000 (vs ₹2,50,000 for others)'}
+      <br>Health & Education Cess: 4% on (tax + surcharge)
     </div>`;
 
-  // ── Income computation (right column) ────────────────────────────
-  const incRows = isNew ? [
-    ['Gross Rent (full — no 30% dedn in new regime)', inrFull(C.grossRent), 'teal'],
-    ['Salary less Std Dedn ₹75,000',                  inrFull(C.salGross-75000), ''],
-    ['Other Income',                                   inrFull(C.otherInc), ''],
-    ['GROSS TOTAL INCOME',                             inrFull(C.grossTotalNew), 'gold'],
-    ['Deductions (80C/D)',                             'NOT AVAILABLE', 'text3'],
-    ['TAXABLE INCOME',                                 inrFull(C.taxableNew), 'gold'],
-    ['Agriculture — Sec 10(1) — for slab rate',       inrFull(C.agriGross), 'green'],
-    ['Total for rate computation',                     inrFull(C.totalForRateNew), ''],
-    ['Tax on ₹'+inr(C.totalForRateNew)+' (new slabs)',inrFull(C.taxOnTotalNew), 'red'],
-    ['Less: Tax on agri ₹'+inr(C.agriGross),          '− '+inrFull(C.agriTaxNew), 'green'],
-    ['Sec 87A Rebate',                                 C.rebate87A>0?'− '+inrFull(C.rebate87A):'NIL (income > ₹12L)', C.rebate87A>0?'green':'text3'],
-    ['Health & Education Cess 4%',                    inrFull(C.cessNew), 'red'],
-    ['TDS Credit (Rent + Salary)',                     '− '+inrFull(C.allTDS), 'green'],
+  // ── ITR-STYLE TAX COMPUTATION (Part B-TTI) ───────────────────────
+  const rows = isNew ? [
+    { k: 'Gross Rent (full — Sec 24a not available)',    v: inrFull(C.grossRent),             style: '' },
+    { k: 'Salary (after Std Dedn ₹75,000)',              v: inrFull(C.salGross - 75000),       style: '' },
+    { k: 'Other Income',                                 v: inrFull(C.otherInc),               style: '' },
+    { k: 'GROSS TOTAL INCOME',                           v: inrFull(C.grossTotalNew),          style: 'bold' },
+    { k: 'Deductions (80C/D/TTB)',                       v: 'NOT AVAILABLE',                   style: 'muted' },
+    { k: 'NET TAXABLE INCOME (A)',                       v: inrFull(C.taxableNew),             style: 'gold' },
+    { k: 'Agriculture Income — Sec 10(1) Exempt',        v: inrFull(C.agriGross),              style: 'green' },
+    { k: 'Total for Rate Computation (A + Agri)',        v: inrFull(C.totalForRateNew),        style: '' },
   ] : [
-    ['Net HP Income (after 30% Sec 24a)',              inrFull(C.netHP), 'teal'],
-    ['Partner Salary (PM)',                            inrFull(C.salGross), ''],
-    ['Other Income',                                   inrFull(C.otherInc), ''],
-    ['GROSS TOTAL INCOME',                             inrFull(C.grossTotal), 'gold'],
-    ['Less: 80C Deductions',                           '− '+inrFull(C.deductions), 'red'],
-    ['TAXABLE INCOME',                                 inrFull(C.taxableIncome), 'gold'],
-    ['Agriculture — Sec 10(1) — for slab rate',       inrFull(C.agriGross), 'green'],
-    ['Total for rate computation',                     inrFull(C.totalForRate), ''],
-    ['Tax on ₹'+inr(C.totalForRate)+' (old slabs)',   inrFull(C.taxOnTotalOld), 'red'],
-    ['Less: Tax on agri ₹'+inr(C.agriGross),          '− '+inrFull(C.agriTaxOld), 'green'],
-    ['Surcharge',                                      C.surcharge>0?inrFull(C.surcharge):'NIL (income < ₹50L)', C.surcharge>0?'red':'green'],
-    ['Health & Education Cess 4%',                    inrFull(C.cess), 'red'],
-    ['TDS Credit (Rent + Salary)',                     '− '+inrFull(C.allTDS), 'green'],
+    { k: 'Net HP Income (Gross Rent less 30% Sec 24a)', v: inrFull(C.netHP),                  style: '' },
+    { k: 'Partner Salary — Premier Marketing',          v: inrFull(C.salGross),               style: '' },
+    { k: 'Other Income (SB Interest + Deposits)',       v: inrFull(C.otherInc),               style: '' },
+    { k: 'GROSS TOTAL INCOME',                          v: inrFull(C.grossTotal),             style: 'bold' },
+    { k: 'Less: Deductions u/s 80C',                    v: '– ' + inrFull(C.deductions),      style: 'red' },
+    { k: 'NET TAXABLE INCOME (A)',                      v: inrFull(C.taxableIncome),          style: 'gold' },
+    { k: 'Agriculture Income — Sec 10(1) Exempt',       v: inrFull(C.agriGross),              style: 'green' },
+    { k: 'Total for Rate Computation (A + Agri)',       v: inrFull(C.totalForRate),           style: '' },
   ];
 
-  const cgRows = C.ltcgGross>0||C.stcgEquity>0 ? [
-    ['── CAPITAL GAINS TAX (Sec 112A / 111A — FA 2024) ──', '', 'amber'],
-    ...(C.ltcgGross>0?[
-      ['LTCG gross (Equity/MF)',                       inrFull(C.ltcgGross), ''],
-      ['Less: Exemption u/s 112A (₹1.25L)',            '− '+inrFull(C.ltcgExempt), 'green'],
-      ['LTCG taxable @ 12.5%',                        inrFull(C.ltcgAfterShortfall)+' → Tax '+inrFull(C.ltcgTax), 'gold'],
-    ]:[]),
-    ...(C.stcgEquity>0?[
-      ['STCG taxable @ 20% (Equity/MF)',              inrFull(C.stcgEquity)+' → Tax '+inrFull(C.stcgTax), 'red'],
-    ]:[]),
-    ['CG Tax + Cess',                                  inrFull(C.totalCGTax), 'red'],
+  const taxRows = [
+    { k: `Tax on ₹${inr(forRate)} (total for rate)`,   v: inrFull(totTx),     style: '', sep: true },
+    { k: `Less: Tax on Agriculture ₹${inr(C.agriGross)} — Sec 10(1)`,
+                                                        v: '– ' + inrFull(agriTx), style: 'green' },
+    ...(isNew && C.rebate87A > 0 ? [
+      { k: 'Less: Rebate u/s 87A',                     v: '– ' + inrFull(C.rebate87A), style: 'green' }
+    ] : []),
+    { k: 'NET INCOME TAX',                             v: inrFull(rawTax),    style: 'bold' },
+    { k: surchR > 0 ? `Surcharge @ ${(surchR*100).toFixed(0)}%` : 'Surcharge',
+                                                        v: surchR > 0 ? inrFull(surch) : 'NIL (income < ₹50L)', style: surchR > 0 ? 'amber' : 'green' },
+    { k: 'Health & Education Cess @ 4%',               v: inrFull(cess_v),    style: '' },
+    { k: 'TOTAL TAX LIABILITY',                        v: inrFull(isNew ? C.totalTaxNew : C.totalTax), style: 'gold-large' },
+  ];
+
+  // Capital gains rows
+  const cgRows = C.ltcgGross > 0 || C.stcgEquity > 0 ? [
+    { k: '── CAPITAL GAINS TAX (Sec 112A / 111A — FA 2024) ──', v: '', style: 'sep-header' },
+    ...(C.ltcgGross > 0 ? [
+      { k: `LTCG ₹${inrFull(C.ltcgGross)} less exemption ₹${inrFull(C.ltcgExempt)} @ 12.5%`, v: inrFull(C.ltcgTax), style: '' },
+    ] : []),
+    ...(C.stcgEquity > 0 ? [
+      { k: `STCG ₹${inrFull(C.stcgEquity)} @ 20%`,             v: inrFull(C.stcgTax),      style: '' },
+    ] : []),
+    { k: 'Capital Gains Tax (incl surcharge + cess)',           v: inrFull(C.totalCGTax),   style: 'amber' },
   ] : [];
 
-  document.getElementById('incomeComp').innerHTML =
-    [...incRows, ...cgRows].map(([k,v,c])=>`
-      <div class="dr" style="${k.startsWith('──')?'border-top:1px solid var(--border2);margin-top:6px;padding-top:8px':''}">
-        <span class="dk" style="${k.startsWith('──')?'color:var(--'+c+')':''}">${k}</span>
-        <span class="dv ${c&&!k.startsWith('──')?c:''}">${v}</span>
-      </div>`).join('') +
-    `<div class="dr" style="border-top:1px solid var(--border2);padding-top:8px;margin-top:4px;border-bottom:none">
-      <span class="dk">NET ADVANCE TAX PAYABLE</span>
-      <span class="dv amber">${inrFull(gbal)}</span>
+  const tdsRows = [
+    { k: 'GRAND TOTAL TAX LIABILITY',                  v: inrFull(gtax),       style: 'gold-large', sep: true },
+    { k: 'Less: TDS on Rent (Sec 194-I)',               v: '– ' + inrFull(C.totalTDS),  style: 'green' },
+    { k: 'Less: TDS on Salary (Sec 192)',               v: '– ' + inrFull(C.salTDS),    style: 'green' },
+    { k: 'NET ADVANCE TAX PAYABLE',                    v: inrFull(gbal),       style: 'amber-large' },
+  ];
+
+  const allRows = [...rows, ...taxRows, ...cgRows, ...tdsRows];
+  document.getElementById('incomeComp').innerHTML = allRows.map(r => {
+    const isHeader = r.style === 'sep-header';
+    if (isHeader) return `<div style="border-top:1px solid var(--border2);margin:8px 0;padding-top:8px;font-size:9px;font-family:var(--font-m);color:var(--amber);letter-spacing:.08em">${r.k}</div>`;
+    const border = r.sep ? 'border-top:1px solid var(--border2);margin-top:6px;padding-top:8px;' : '';
+    const valColor = {
+      'gold':'color:var(--gold)', 'gold-large':'color:var(--gold)',
+      'amber':'color:var(--amber)', 'amber-large':'color:var(--amber)',
+      'green':'color:var(--green)', 'red':'color:var(--red)',
+      'muted':'color:var(--text3)', 'bold':'color:var(--text)',
+      ''  : 'color:var(--text2)'
+    }[r.style] || 'color:var(--text2)';
+    const keyStyle = (r.style==='bold'||r.style.includes('large')) ? 'font-weight:500;color:var(--text)' : 'color:var(--text3)';
+    const valSize  = r.style.includes('large') ? 'font-size:18px;font-family:var(--font-d)' : 'font-size:13px';
+    return `<div class="dr" style="${border}">
+      <span style="font-family:var(--font-m);font-size:11px;${keyStyle}">${r.k}</span>
+      <span style="${valSize};${valColor}">${r.v}</span>
     </div>`;
+  }).join('');
 
   // ── Regime comparison table ───────────────────────────────────────
   document.getElementById('optimTable').innerHTML = `
-    <tr><td class="mono" style="color:var(--gold)">Old Regime</td>
-    <td>HP 30% Sec24a + 80C ₹1.5L + 80D ₹50K + 80TTB ₹50K</td>
-    <td class="num">${inrFull(C.grossTotal)}</td>
-    <td class="num">${inrFull(C.taxableIncome)}</td>
-    <td class="num" style="color:${C.betterRegime==='old'?'var(--green)':'var(--red)'}">${inrFull(C.grandTotalTax)}</td>
-    <td>${C.betterRegime==='old'?'<span class="badge bg">✓ BETTER</span>':'<span class="badge br">Higher Tax</span>'}</td></tr>
-    <tr><td class="mono" style="color:var(--teal)">New Regime</td>
-    <td>No HP dedn · No 80C/D · Std dedn ₹75K · 87A if ≤₹12L</td>
-    <td class="num">${inrFull(C.grossTotalNew)}</td>
-    <td class="num">${inrFull(C.taxableNew)}</td>
-    <td class="num" style="color:${C.betterRegime==='new'?'var(--green)':'var(--red)'}">${inrFull(C.grandTotalTaxNew)}</td>
-    <td>${C.betterRegime==='new'?'<span class="badge bg">✓ BETTER</span>':'<span class="badge br">Higher Tax</span>'}</td></tr>
-    <tr class="total-row"><td colspan="4">Tax Savings (better regime vs other)</td>
-    <td class="num">₹${Math.abs(C.taxSaving).toLocaleString('en-IN')}</td>
-    <td><span class="badge ${C.betterRegime==='old'?'bgold':'bb'}">${C.betterRegime==='old'?'Old Regime':'New Regime'} wins</span></td></tr>`;
-
-  // ── Update slab bar chart ─────────────────────────────────────────
-  renderChart('taxSlabBar','bar',{
-    labels: slabs.map(s=>s.label),
-    datasets:[
-      {label:'Income in band',data:slabs.map(s=>Math.round(s.bandIncome)),backgroundColor:slabs.map(s=>s.color+'55'),borderColor:slabs.map(s=>s.color),borderWidth:1,borderRadius:4},
-      {label:'Tax from band', data:slabs.map(s=>Math.round(s.tax)),        backgroundColor:slabs.map(s=>s.color),borderWidth:0,borderRadius:4}
-    ]
-  },{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.x)}}},
-     scales:{x:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}},
-             y:{ticks:{color:'#8a9bb5',font:{size:10}},grid:{display:false}}}});
+    <tr>
+      <td class="mono" style="color:var(--gold)">Old Regime</td>
+      <td>Sec 24a 30% dedn + 80C ₹1.5L + 80D ₹50K + 80TTB ₹50K</td>
+      <td class="num">${inrFull(C.grossTotal)}</td>
+      <td class="num">${inrFull(C.taxableIncome)}</td>
+      <td class="num" style="color:${C.betterRegime==='old'?'var(--green)':'var(--red)'}">${inrFull(C.grandTotalTax)}</td>
+      <td>${C.betterRegime==='old'?'<span class="badge bg">✓ BETTER</span>':'<span class="badge br">Higher Tax</span>'}</td>
+    </tr>
+    <tr>
+      <td class="mono" style="color:var(--teal)">New Regime</td>
+      <td>No HP dedn · No 80C/D · Std dedn ₹75K on salary · 87A if ≤₹12L</td>
+      <td class="num">${inrFull(C.grossTotalNew)}</td>
+      <td class="num">${inrFull(C.taxableNew)}</td>
+      <td class="num" style="color:${C.betterRegime==='new'?'var(--green)':'var(--red)'}">${inrFull(C.grandTotalTaxNew)}</td>
+      <td>${C.betterRegime==='new'?'<span class="badge bg">✓ BETTER</span>':'<span class="badge br">Higher Tax</span>'}</td>
+    </tr>
+    <tr class="total-row">
+      <td colspan="4">Tax Saving (better regime vs other)</td>
+      <td class="num">₹${Math.abs(C.taxSaving).toLocaleString('en-IN')}</td>
+      <td><span class="badge ${C.betterRegime==='old'?'bgold':'bb'}">${C.betterRegime==='old'?'Old Regime':'New Regime'} wins</span></td>
+    </tr>`;
 }
+
 
 // ─── GST ──────────────────────────────────────────────────────────────
 function renderGST(C) {
