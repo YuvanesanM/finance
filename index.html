@@ -196,6 +196,20 @@ td.prop-name{color:var(--text);font-weight:500}
 .login-btn:disabled{opacity:.5;cursor:not-allowed}
 .login-err{font-size:12px;color:var(--red);margin-top:10px;font-family:var(--font-m);min-height:18px}
 .login-spinner{width:18px;height:18px;border:2px solid rgba(10,12,15,.3);border-top-color:#0a0c0f;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+
+/* ── LOGIN ───────────────────────────────────────────────────────── */
+.login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:44px;width:360px;text-align:center}
+.login-mark{width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:24px;color:#0a0c0f;font-weight:700;margin:0 auto 18px}
+.login-title{font-family:var(--font-d);font-size:24px;margin-bottom:4px}
+.login-sub{font-size:11px;color:var(--text3);font-family:var(--font-m);letter-spacing:.08em;text-transform:uppercase;margin-bottom:30px}
+.login-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:12px 16px;color:var(--text);font-family:var(--font-m);font-size:15px;text-align:center;letter-spacing:.15em;outline:none;transition:border-color .2s;margin-bottom:12px}
+.login-input:focus{border-color:rgba(201,168,76,.6)}
+.login-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:var(--rs);font-family:var(--font-b);font-size:14px;font-weight:600;color:#0a0c0f;cursor:pointer;transition:opacity .15s;letter-spacing:.03em}
+.login-btn:hover{opacity:.85}
+.login-btn:disabled{opacity:.4;cursor:not-allowed}
+.login-err{font-size:12px;color:var(--red);margin-top:10px;font-family:var(--font-m);min-height:16px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(10,12,15,.3);border-top-color:#0a0c0f;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 </style>
 </head>
 <body>
@@ -223,6 +237,17 @@ td.prop-name{color:var(--text);font-weight:500}
   </div>
 </div>
 
+<div class="login-overlay" id="loginOverlay" style="display:none">
+  <div class="login-box">
+    <div class="login-mark">S</div>
+    <div class="login-title">SMK Finance</div>
+    <div class="login-sub">Secure · Private · AY 2026-27</div>
+    <input type="password" class="login-input" id="loginPass" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Unlock Dashboard</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
 <div class="layout">
 
 <!-- TOPBAR -->
@@ -565,6 +590,53 @@ td.prop-name{color:var(--text);font-weight:500}
 // ─── CONFIG ───────────────────────────────────────────
 // All GitHub access is via the Render proxy — no secrets in this file
 const PROXY_URL = 'https://finance-proxy-jcf5.onrender.com';
+
+// ─── AUTH STATE ───────────────────────────────────────
+let _token = sessionStorage.getItem('fin_tok') || null;
+
+function authHdr() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token };
+}
+
+async function doLogin() {
+  const pass = document.getElementById('loginPass').value.trim();
+  const btn  = document.getElementById('loginBtn');
+  const err  = document.getElementById('loginErr');
+  if (!pass) { err.textContent = 'Enter password'; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Verifying...';
+  err.textContent = '';
+  try {
+    const r = await fetch(PROXY_URL + '/auth', {
+      method: 'POST',
+      headers: authHdr(),
+      body: JSON.stringify({ password: pass })
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || 'Wrong password');
+    _token = j.token;
+    sessionStorage.setItem('fin_tok', _token);
+    document.getElementById('loginOverlay').style.display = 'none';
+    loadData();
+  } catch(e) {
+    err.textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = 'Unlock Dashboard';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function showLogin(msg) {
+  _token = null;
+  sessionStorage.removeItem('fin_tok');
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginErr').textContent = msg || '';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Unlock Dashboard';
+  setTimeout(() => document.getElementById('loginPass').focus(), 100);
+}
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MO = ['APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB','MAR'];
 
@@ -587,7 +659,7 @@ async function doLogin() {
   try {
     const res = await fetch(PROXY_URL + '/auth', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHdr(),
       body: JSON.stringify({ password: pass })
     });
     const data = await res.json();
@@ -622,7 +694,8 @@ async function loadData(forceRefresh = false) {
   setSyncStatus('loading', 'Fetching...');
   try {
     const url = PROXY_URL + '/finance' + (forceRefresh ? '?t=' + Date.now() : '');
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: authHdr() });
+    if (res.status === 401) { showLogin('Session expired — please log in again'); return; }
     if (!res.ok) throw new Error('HTTP ' + res.status);
     D = await res.json();
     setSyncStatus('ok', 'Live · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
@@ -644,12 +717,13 @@ async function saveToGitHub() {
   try {
     D._meta.lastUpdated = new Date().toISOString().split('T')[0];
     // Step 1: get SHA
-    const shaRes = await fetch(PROXY_URL + '/finance/sha');
+    const shaRes = await fetch(PROXY_URL + '/finance/sha', { headers: authHdr() });
+    if (shaRes.status === 401) { showLogin('Session expired'); return; }
     const { sha } = await shaRes.json();
     // Step 2: send data object (proxy handles encryption)
     const putRes = await fetch(PROXY_URL + '/finance', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHdr(),
       body: JSON.stringify({
         message: 'SMK Finance Dashboard update — ' + new Date().toLocaleString('en-IN'),
         sha,
@@ -1245,9 +1319,14 @@ function showToast(msg, type = 'info') {
 window.addEventListener('beforeunload', e => { if (pendingChanges) { e.preventDefault(); e.returnValue = ''; } });
 
 // ─── BOOT ─────────────────────────────────────────────
-// Skip login for now — load directly
-document.getElementById('loginScreen').style.display = 'none';
-loadData();
+// Boot — check session token
+if (_token) {
+  loadData();
+} else {
+  document.getElementById('loadingOverlay').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('loginPass').focus(), 100);
+}
 </script>
 </body>
 </html>
