@@ -223,17 +223,6 @@ td.prop-name{color:var(--text);font-weight:500}
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-
-<!-- LOGIN SCREEN -->
-<div class="login-screen" id="loginScreen">
-  <div class="login-box">
-    <div class="login-logo">S</div>
-    <div class="login-title">SMK Finance</div>
-    <div class="login-sub">SECURE · PRIVATE · AY 2026-27</div>
-    <input type="password" class="login-input" id="loginPass" placeholder="Enter password"
-      onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">Unlock Dashboard</button>
-    <div class="login-err" id="loginErr"></div>
   </div>
 </div>
 
@@ -648,38 +637,7 @@ let pendingChanges = false;
 let authToken    = sessionStorage.getItem('smk_token') || null;
 
 // ─── AUTH ─────────────────────────────────────────────
-async function doLogin() {
-  const pass = document.getElementById('loginPass').value.trim();
-  const btn  = document.getElementById('loginBtn');
-  const err  = document.getElementById('loginErr');
-  if (!pass) { err.textContent = 'Please enter the password'; return; }
-  btn.disabled = true;
-  btn.innerHTML = '<span class="login-spinner"></span>Verifying...';
-  err.textContent = '';
-  try {
-    const res = await fetch(PROXY_URL + '/auth', {
-      method: 'POST',
-      headers: authHdr(),
-      body: JSON.stringify({ password: pass })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || 'Incorrect password');
-    authToken = data.token;
-    sessionStorage.setItem('smk_token', authToken);
-    document.getElementById('loginScreen').style.display = 'none';
-    loadData();
-  } catch(e) {
-    err.textContent = e.message;
-    btn.disabled = false;
-    btn.textContent = 'Unlock Dashboard';
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginPass').focus();
-  }
-}
 
-function authHeaders() {
-  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
-}
 
 function handleAuthError() {
   authToken = null;
