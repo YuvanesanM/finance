@@ -3,1407 +3,530 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SMK Income & Tax Dashboard — AY 2026-27</title>
+<title>SMK Finance Dashboard — AY 2026-27</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root {
-  --bg: #0a0c0f;
-  --bg2: #111318;
-  --bg3: #181c24;
-  --bg4: #1e2430;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
-  --text: #e8eaf0;
-  --text2: #8a9bb5;
-  --text3: #4a5568;
-  --gold: #c9a84c;
-  --gold2: #e6c96a;
-  --gold-dim: rgba(201,168,76,0.12);
-  --teal: #2dd4bf;
-  --teal-dim: rgba(45,212,191,0.1);
-  --red: #f87171;
-  --red-dim: rgba(248,113,113,0.1);
-  --green: #4ade80;
-  --green-dim: rgba(74,222,128,0.1);
-  --blue: #60a5fa;
-  --blue-dim: rgba(96,165,250,0.1);
-  --amber: #fbbf24;
-  --amber-dim: rgba(251,191,36,0.1);
-  --font-display: 'DM Serif Display', Georgia, serif;
-  --font-body: 'Outfit', system-ui, sans-serif;
-  --font-mono: 'DM Mono', monospace;
-  --radius: 12px;
-  --radius-sm: 8px;
-}
+:root{--bg:#0a0c0f;--bg2:#111318;--bg3:#181c24;--bg4:#1e2430;--bg5:#242938;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#e8eaf0;--text2:#8a9bb5;--text3:#4a5568;--gold:#c9a84c;--gold2:#e6c96a;--gold-dim:rgba(201,168,76,0.12);--teal:#2dd4bf;--teal-dim:rgba(45,212,191,0.1);--red:#f87171;--red-dim:rgba(248,113,113,0.1);--green:#4ade80;--green-dim:rgba(74,222,128,0.1);--blue:#60a5fa;--blue-dim:rgba(96,165,250,0.1);--amber:#fbbf24;--amber-dim:rgba(251,191,36,0.1);--font-d:'DM Serif Display',Georgia,serif;--font-b:'Outfit',system-ui,sans-serif;--font-m:'DM Mono',monospace;--r:12px;--rs:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:14px;line-height:1.6;min-height:100vh}
+.layout{display:grid;grid-template-columns:248px 1fr;grid-template-rows:56px 1fr;min-height:100vh}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* TOPBAR */
+.topbar{grid-column:1/-1;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:200}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:15px;color:#0a0c0f;font-weight:700;flex-shrink:0}
+.brand-name{font-family:var(--font-d);font-size:16px}
+.brand-sub{font-size:9px;color:var(--text3);font-family:var(--font-m);letter-spacing:.1em;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.sync-status{display:flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:11px;color:var(--text3);padding:5px 12px;background:var(--bg3);border-radius:20px;border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.sync-status:hover{border-color:var(--border2);color:var(--text2)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.sync-dot.saving{background:var(--amber);animation:pulse 1s infinite}
+.sync-dot.err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.ay-pill{font-family:var(--font-m);font-size:10px;color:var(--gold);padding:4px 12px;background:var(--gold-dim);border-radius:20px;border:1px solid rgba(201,168,76,.25);letter-spacing:.06em}
+.btn{padding:7px 14px;border-radius:var(--rs);font-family:var(--font-b);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s;letter-spacing:.02em}
+.btn:hover{background:var(--bg4);color:var(--text)}
+.btn-gold{background:var(--gold-dim);border-color:rgba(201,168,76,.3);color:var(--gold)}
+.btn-gold:hover{background:rgba(201,168,76,.2)}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.6;
-  min-height: 100vh;
-}
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:16px 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;display:flex;flex-direction:column}
+.nav-group-label{font-size:9px;font-family:var(--font-m);letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:12px 18px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 18px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;color:var(--text2);font-size:13px;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,.03);color:var(--text)}
+.nav-item.active{background:rgba(201,168,76,.07);border-left-color:var(--gold);color:var(--gold);font-weight:500}
+.nav-ic{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.nav-badge{margin-left:auto;font-family:var(--font-m);font-size:10px;color:var(--text3)}
+.nav-item.active .nav-badge{color:rgba(201,168,76,.6)}
+.sidebar-footer{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border)}
+.assessee-card{background:var(--bg3);border-radius:var(--rs);padding:11px 13px;border:1px solid var(--border)}
+.ac-name{font-family:var(--font-d);font-size:13px;color:var(--gold);line-height:1.3}
+.ac-pan{font-family:var(--font-m);font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:.05em}
+.ac-ay{font-size:11px;color:var(--text2);margin-top:5px}
 
-/* ─── LAYOUT ─── */
-.layout {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  grid-template-rows: auto 1fr;
-  min-height: 100vh;
-}
+/* MAIN */
+.main{padding:24px 28px;overflow-y:auto}
+.panel{display:none;animation:fadeIn .25s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-/* ─── TOPBAR ─── */
-.topbar {
-  grid-column: 1 / -1;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  height: 60px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.topbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.brand-mark {
-  width: 34px; height: 34px;
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display);
-  font-size: 16px;
-  color: #0a0c0f;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  flex-shrink: 0;
-}
-.brand-text { 
-  font-family: var(--font-display);
-  font-size: 17px;
-  color: var(--text);
-  letter-spacing: 0.01em;
-}
-.brand-sub {
-  font-size: 10px;
-  color: var(--text3);
-  font-family: var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: 1px;
-}
-.topbar-meta {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-.meta-pill {
-  padding: 4px 12px;
-  background: var(--gold-dim);
-  border: 1px solid rgba(201,168,76,0.25);
-  border-radius: 20px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--gold);
-  letter-spacing: 0.06em;
-}
-.meta-item {
-  font-size: 12px;
-  color: var(--text2);
-}
-.meta-item strong {
-  color: var(--text);
-  font-weight: 500;
-}
+/* PAGE HEADER */
+.page-hd{margin-bottom:22px;display:flex;align-items:flex-end;justify-content:space-between}
+.page-title{font-family:var(--font-d);font-size:26px;letter-spacing:-.02em;line-height:1.1}
+.page-title em{font-style:italic;color:var(--gold)}
+.page-sub{font-size:12px;color:var(--text2);margin-top:3px}
 
-/* ─── SIDEBAR ─── */
-.sidebar {
-  background: var(--bg2);
-  border-right: 1px solid var(--border);
-  padding: 20px 0;
-  position: sticky;
-  top: 60px;
-  height: calc(100vh - 60px);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-.sidebar-section-label {
-  font-size: 9px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text3);
-  padding: 12px 20px 6px;
-}
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: all 0.15s;
-  border-left: 2px solid transparent;
-  color: var(--text2);
-  font-size: 13px;
-  font-weight: 400;
-  user-select: none;
-}
-.nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
-.nav-item.active {
-  background: rgba(201,168,76,0.08);
-  border-left-color: var(--gold);
-  color: var(--gold);
-  font-weight: 500;
-}
-.nav-icon {
-  width: 16px; height: 16px;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-.nav-badge {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text3);
-}
-.nav-item.active .nav-badge { color: var(--gold); opacity: 0.7; }
-.sidebar-footer {
-  margin-top: auto;
-  padding: 16px 20px;
-  border-top: 1px solid var(--border);
-}
-.assessee-card {
-  background: var(--bg3);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  border: 1px solid var(--border);
-}
-.assessee-name {
-  font-family: var(--font-display);
-  font-size: 13px;
-  color: var(--gold);
-  line-height: 1.3;
-}
-.assessee-pan {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text3);
-  margin-top: 3px;
-  letter-spacing: 0.05em;
-}
-.assessee-ay {
-  font-size: 11px;
-  color: var(--text2);
-  margin-top: 6px;
-}
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--kc,var(--gold)),transparent);opacity:.5}
+.kpi:hover{border-color:var(--border2)}
+.kpi-label{font-size:9px;font-family:var(--font-m);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+.kpi-value{font-family:var(--font-d);font-size:24px;color:var(--text);letter-spacing:-.02em;line-height:1}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:5px;font-family:var(--font-m)}
+.kpi-badge{position:absolute;top:13px;right:13px;font-size:9px;font-family:var(--font-m);padding:2px 7px;border-radius:4px}
+.kb-up{background:var(--green-dim);color:var(--green)}
+.kb-dn{background:var(--red-dim);color:var(--red)}
+.kb-nu{background:var(--blue-dim);color:var(--blue)}
 
-/* ─── MAIN CONTENT ─── */
-.main {
-  padding: 28px 32px;
-  overflow-y: auto;
-  animation: fadeIn 0.3s ease;
-}
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+.card-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 11px;border-bottom:1px solid var(--border)}
+.card-title{font-size:11px;font-family:var(--font-m);letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
+.card-tag{font-size:9px;font-family:var(--font-m);padding:2px 8px;border-radius:4px;background:var(--bg4);color:var(--text3);border:1px solid var(--border)}
+.card-body{padding:16px 18px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g31{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.chart-wrap{position:relative;width:100%}
 
-.panel { display: none; animation: fadeIn 0.25s ease; }
-.panel.active { display: block; }
+/* TABLES */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{font-size:9px;font-family:var(--font-m);letter-spacing:.09em;text-transform:uppercase;color:var(--text3);padding:9px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:500}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+td.num{text-align:right;font-family:var(--font-m);font-size:11px;color:var(--text);white-space:nowrap}
+td.prop-name{color:var(--text);font-weight:500}
+.total-row td{background:rgba(201,168,76,.06)!important;color:var(--gold)!important;font-weight:600;border-top:1px solid rgba(201,168,76,.2)!important}
+.total-row td.num{color:var(--gold)!important}
 
-/* ─── PAGE HEADER ─── */
-.page-header {
-  margin-bottom: 28px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-.page-title {
-  font-family: var(--font-display);
-  font-size: 28px;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-.page-title em {
-  font-style: italic;
-  color: var(--gold);
-}
-.page-subtitle {
-  font-size: 13px;
-  color: var(--text2);
-  margin-top: 4px;
-}
-.page-actions {
-  display: flex;
-  gap: 8px;
-}
-.btn {
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid var(--border2);
-  background: var(--bg3);
-  color: var(--text2);
-  transition: all 0.15s;
-  letter-spacing: 0.02em;
-}
-.btn:hover { background: var(--bg4); color: var(--text); }
-.btn-gold {
-  background: var(--gold-dim);
-  border-color: rgba(201,168,76,0.3);
-  color: var(--gold);
-}
-.btn-gold:hover { background: rgba(201,168,76,0.2); }
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:9px;font-family:var(--font-m);font-weight:500;letter-spacing:.04em;white-space:nowrap}
+.bg{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.ba{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.br{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.bb{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(96,165,250,.2)}
+.bgold{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,.2)}
 
-/* ─── KPI GRID ─── */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.kpi-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.2s;
-}
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent-color, var(--gold)), transparent);
-  opacity: 0.5;
-}
-.kpi-card:hover { border-color: var(--border2); }
-.kpi-label {
-  font-size: 10px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 8px;
-}
-.kpi-value {
-  font-family: var(--font-display);
-  font-size: 26px;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-.kpi-value.gold { color: var(--gold); }
-.kpi-value.teal { color: var(--teal); }
-.kpi-value.red { color: var(--red); }
-.kpi-value.green { color: var(--green); }
-.kpi-sub {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 6px;
-  font-family: var(--font-mono);
-}
-.kpi-trend {
-  position: absolute;
-  top: 16px; right: 16px;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  padding: 3px 7px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-.trend-up { background: var(--green-dim); color: var(--green); }
-.trend-down { background: var(--red-dim); color: var(--red); }
-.trend-neutral { background: var(--blue-dim); color: var(--blue); }
+/* DATA ROWS */
+.dr{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.dr:last-child{border-bottom:none}
+.dk{font-size:12px;color:var(--text2)}
+.dv{font-family:var(--font-m);font-size:12px;color:var(--text)}
+.dv.gold{color:var(--gold)}.dv.red{color:var(--red)}.dv.green{color:var(--green)}.dv.amber{color:var(--amber)}
 
-/* ─── CHART CARDS ─── */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.grid-3-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+/* PROGRESS BARS */
+.pb-wrap{margin-bottom:11px}
+.pb-hd{display:flex;justify-content:space-between;margin-bottom:4px}
+.pb-name{font-size:12px;color:var(--text);font-weight:500}
+.pb-amt{font-family:var(--font-m);font-size:11px;color:var(--gold)}
+.pb-track{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.pb-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .8s cubic-bezier(.16,1,.3,1)}
 
-.card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--border);
-}
-.card-title {
-  font-size: 12px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text2);
-}
-.card-tag {
-  font-size: 10px;
-  font-family: var(--font-mono);
-  padding: 3px 8px;
-  border-radius: 4px;
-  background: var(--bg4);
-  color: var(--text3);
-  border: 1px solid var(--border);
-}
-.card-body { padding: 16px 20px; }
-.chart-wrap { position: relative; width: 100%; }
+/* EDITABLE CELLS */
+.editable{cursor:pointer;border-bottom:1px dashed var(--text3);transition:all .15s;padding:1px 3px;border-radius:3px;display:inline-block;min-width:60px;text-align:right}
+.editable:hover{background:var(--bg4);border-bottom-color:var(--gold);color:var(--gold)}
+.editable:focus{outline:none;background:var(--bg5);border-bottom:1px solid var(--gold);color:var(--gold)}
+.edit-mode .editable{border-bottom-color:rgba(201,168,76,.5)}
 
-/* ─── TABLES ─── */
-.table-wrap { overflow-x: auto; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-thead th {
-  font-size: 9px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text3);
-  padding: 10px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-  font-weight: 500;
-}
-tbody td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text2);
-  vertical-align: middle;
-}
-tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover td { background: rgba(255,255,255,0.02); }
-td.num {
-  text-align: right;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text);
-  white-space: nowrap;
-}
-td.mono {
-  font-family: var(--font-mono);
-  font-size: 12px;
-}
-td.prop-name { color: var(--text); font-weight: 500; }
-.total-row td {
-  background: rgba(201,168,76,0.06) !important;
-  color: var(--gold) !important;
-  font-weight: 600;
-  border-top: 1px solid rgba(201,168,76,0.2);
-}
-.total-row td.num { color: var(--gold) !important; }
+/* MONTH GRID */
+.month-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-top:8px}
+.month-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-family:var(--font-m);cursor:pointer;transition:all .15s;border:1px solid transparent;position:relative}
+.month-cell.paid{background:var(--green-dim);color:var(--green);border-color:rgba(74,222,128,.3)}
+.month-cell.unpaid{background:var(--bg4);color:var(--text3)}
+.month-cell.zero{background:var(--bg3);color:var(--text3);opacity:.4}
+.month-cell:hover{transform:scale(1.15);z-index:2}
+.month-cell .tooltip{position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--bg5);border:1px solid var(--border2);padding:4px 8px;border-radius:5px;font-size:9px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10}
+.month-cell:hover .tooltip{opacity:1}
 
-/* ─── BADGES ─── */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-.badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
-.badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
-.badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
-.badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
-.badge-gold { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
-.badge-teal { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
+/* TAX SLABS */
+.slab-row{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);gap:12px}
+.slab-row:last-child{border-bottom:none}
+.slab-range-box{min-width:175px;font-size:12px;color:var(--text2)}
+.slab-pct{font-family:var(--font-d);font-size:19px;min-width:46px;color:var(--text3)}
+.slab-bar-wrap{flex:1}
+.slab-bar{height:7px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.slab-bar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.slab-amt{font-family:var(--font-m);font-size:12px;min-width:105px;text-align:right}
 
-/* ─── PROPERTY METER BAR ─── */
-.prop-bar-wrap { margin-bottom: 12px; }
-.prop-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-.prop-bar-name { font-size: 12px; color: var(--text); font-weight: 500; }
-.prop-bar-amt { font-family: var(--font-mono); font-size: 11px; color: var(--gold); }
-.prop-bar { height: 5px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
-.prop-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--gold) 0%, var(--gold2) 100%); transition: width 0.8s cubic-bezier(0.16,1,0.3,1); }
+/* TIMELINE */
+.timeline{position:relative;padding-left:26px}
+.timeline::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:1px;background:linear-gradient(to bottom,var(--gold),transparent)}
+.tl-item{position:relative;margin-bottom:18px}
+.tl-dot{position:absolute;left:-23px;top:4px;width:9px;height:9px;border-radius:50%;border:2px solid var(--gold);background:var(--bg)}
+.tl-dot.filled{background:var(--gold)}
+.tl-dot.grey{border-color:var(--text3)}
+.tl-date{font-family:var(--font-m);font-size:9px;color:var(--text3);letter-spacing:.06em;margin-bottom:3px}
+.tl-label{font-size:13px;color:var(--text);font-weight:500}
+.tl-amt{font-family:var(--font-m);font-size:12px;color:var(--gold);margin-top:2px}
+.tl-note{font-size:11px;color:var(--text3);margin-top:1px}
 
-/* ─── TAX SLAB VIZ ─── */
-.slab-row {
-  display: flex;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-  gap: 12px;
-}
-.slab-row:last-child { border-bottom: none; }
-.slab-range-box {
-  min-width: 190px;
-  font-size: 12px;
-  color: var(--text2);
-}
-.slab-pct {
-  font-family: var(--font-display);
-  font-size: 20px;
-  color: var(--text3);
-  min-width: 50px;
-}
-.slab-bar-wrap { flex: 1; }
-.slab-bar { height: 8px; background: var(--bg4); border-radius: 4px; overflow: hidden; }
-.slab-bar-fill { height: 100%; border-radius: 4px; }
-.slab-tax-amt {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  min-width: 110px;
-  text-align: right;
-}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);font-size:13px;color:var(--text);z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;font-family:var(--font-b)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-left:3px solid var(--green)}
+.toast.err{border-left:3px solid var(--red)}
+.toast.info{border-left:3px solid var(--blue)}
 
-/* ─── PROPERTY DETAIL CARD ─── */
-.prop-detail {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.prop-detail:hover { border-color: var(--border2); background: var(--bg4); }
-.prop-icon {
-  width: 36px; height: 36px;
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-.prop-info { flex: 1; }
-.prop-nm { font-size: 13px; color: var(--text); font-weight: 500; margin-bottom: 2px; }
-.prop-tenant { font-size: 11px; color: var(--text3); }
-.prop-amt { text-align: right; }
-.prop-annual { font-family: var(--font-mono); font-size: 14px; color: var(--gold); }
-.prop-tds { font-family: var(--font-mono); font-size: 10px; color: var(--text3); margin-top: 2px; }
+/* LOADING */
+.loading-overlay{position:fixed;inset:0;background:rgba(10,12,15,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+.loading-spinner{width:36px;height:36px;border:2px solid var(--bg4);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:var(--font-m);font-size:12px;color:var(--text3);letter-spacing:.08em}
 
-/* ─── ADVANCE TAX TIMELINE ─── */
-.timeline { position: relative; padding-left: 28px; }
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 8px; top: 8px; bottom: 8px;
-  width: 1px;
-  background: linear-gradient(to bottom, var(--gold), transparent);
-}
-.timeline-item { position: relative; margin-bottom: 20px; }
-.timeline-dot {
-  position: absolute;
-  left: -24px; top: 4px;
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  border: 2px solid var(--gold);
-  background: var(--bg);
-}
-.timeline-dot.filled { background: var(--gold); }
-.timeline-dot.grey { border-color: var(--text3); }
-.timeline-date { font-family: var(--font-mono); font-size: 10px; color: var(--text3); letter-spacing: 0.06em; margin-bottom: 4px; }
-.timeline-label { font-size: 13px; color: var(--text); font-weight: 500; }
-.timeline-amt { font-family: var(--font-mono); font-size: 12px; color: var(--gold); margin-top: 2px; }
-.timeline-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+/* INLINE EDIT TOOLBAR */
+.edit-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(201,168,76,.07);border-bottom:1px solid rgba(201,168,76,.2);font-size:12px;color:var(--gold);font-family:var(--font-m)}
+.edit-toolbar .save-btn{margin-left:auto;padding:5px 14px;background:var(--gold);color:#0a0c0f;border:none;border-radius:var(--rs);font-family:var(--font-b);font-size:11px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.edit-toolbar .save-btn:hover{opacity:.85}
+.edit-toolbar .cancel-btn{padding:5px 14px;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--rs);font-family:var(--font-b);font-size:11px;cursor:pointer}
+.edit-toolbar .cancel-btn:hover{color:var(--text)}
 
-/* ─── DATA ROW ─── */
-.data-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-.data-row:last-child { border-bottom: none; }
-.data-key { font-size: 12px; color: var(--text2); }
-.data-val { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
-.data-val.gold { color: var(--gold); }
-.data-val.red { color: var(--red); }
-.data-val.green { color: var(--green); }
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
 
-/* ─── GST QUARTERLY ─── */
-.quarter-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
-.q-tab {
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  background: var(--bg3);
-  color: var(--text2);
-  transition: all 0.15s;
-  letter-spacing: 0.05em;
-}
-.q-tab.active { background: var(--gold-dim); border-color: rgba(201,168,76,0.3); color: var(--gold); }
-
-/* ─── SEARCH / FILTER ─── */
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.search-input {
-  flex: 1;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 9px 14px;
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.search-input:focus { border-color: rgba(201,168,76,0.4); }
-.search-input::placeholder { color: var(--text3); }
-
-/* ─── SPARKLINES ─── */
-.sparkline-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-.sparkline-row:last-child { border-bottom: none; }
-.sparkline-name { min-width: 160px; font-size: 12px; color: var(--text); }
-.sparkline-canvas { flex: 1; }
-.sparkline-total { font-family: var(--font-mono); font-size: 12px; color: var(--gold); min-width: 90px; text-align: right; }
-
-/* ─── SUMMARY STAT STRIP ─── */
-.stat-strip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-.stat-cell {
-  background: var(--bg3);
-  padding: 14px 18px;
-  text-align: center;
-}
-.stat-lbl { font-size: 10px; font-family: var(--font-mono); color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
-.stat-v { font-family: var(--font-display); font-size: 20px; color: var(--text); }
-
-/* ─── SCROLLBAR ─── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
-
-/* ─── PRINT / EXPORT BADGE ─── */
-@media print {
-  .sidebar, .topbar { display: none; }
-  .layout { grid-template-columns: 1fr; }
-  .main { padding: 20px; }
-}
-
-/* ─── RESPONSIVE ─── */
-@media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .grid-2, .grid-3, .grid-3-1 { grid-template-columns: 1fr; }
-}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.sidebar{display:none}.kpi-grid{grid-template-columns:1fr 1fr}.g2,.g3,.g31{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">FETCHING DATA FROM GITHUB...</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <div class="layout">
 
-<!-- ─── TOPBAR ─── -->
+<!-- TOPBAR -->
 <header class="topbar">
-  <div class="topbar-brand">
+  <div class="brand">
     <div class="brand-mark">S</div>
     <div>
-      <div class="brand-text">SMK Financial Dashboard</div>
-      <div class="brand-sub">Income &amp; Tax Intelligence</div>
+      <div class="brand-name">SMK Finance Dashboard</div>
+      <div class="brand-sub">Income &amp; Tax Intelligence · Live from GitHub</div>
     </div>
   </div>
-  <div class="topbar-meta">
-    <span class="meta-item">PAN <strong>AAIPM5399Q</strong></span>
-    <span class="meta-item">Circle <strong>ACIT VI, Non Corp Cir 9(1) Chennai</strong></span>
-    <span class="meta-pill">AY 2026-27</span>
+  <div class="topbar-right">
+    <div class="sync-status" id="syncStatus" onclick="loadData(true)">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncLabel">Connecting...</span>
+    </div>
+    <span class="ay-pill">AY 2026-27</span>
+    <button class="btn btn-gold" onclick="openEditor()">✏ Edit Data</button>
+    <button class="btn" onclick="window.print()">↓ Export PDF</button>
   </div>
 </header>
 
-<!-- ─── SIDEBAR ─── -->
+<!-- SIDEBAR -->
 <nav class="sidebar">
-  <div class="sidebar-section-label">Navigation</div>
+  <div class="nav-group-label">Dashboard</div>
+  <div class="nav-item active" onclick="showPanel('overview',this)"><span class="nav-ic">⊞</span>Overview<span class="nav-badge">Home</span></div>
+  <div class="nav-item" onclick="showPanel('income',this)"><span class="nav-ic">↕</span>Income Sources<span class="nav-badge" id="nb-income">—</span></div>
 
-  <div class="nav-item active" onclick="showPanel('overview', this)">
-    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/>
-      <rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/>
-    </svg>
-    Overview
-    <span class="nav-badge">Home</span>
-  </div>
+  <div class="nav-group-label">Property</div>
+  <div class="nav-item" onclick="showPanel('property',this)"><span class="nav-ic">⌂</span>House Property<span class="nav-badge" id="nb-prop">13</span></div>
+  <div class="nav-item" onclick="showPanel('months',this)"><span class="nav-ic">⊡</span>Monthly Tracker<span class="nav-badge">Heatmap</span></div>
 
-  <div class="nav-item" onclick="showPanel('income', this)">
-    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M8 1v14M3 5l5-4 5 4M3 11l5 4 5-4"/>
-    </svg>
-    Income Sources
-    <span class="nav-badge">₹38.6L</span>
-  </div>
+  <div class="nav-group-label">Tax &amp; Compliance</div>
+  <div class="nav-item" onclick="showPanel('tax',this)"><span class="nav-ic">§</span>Tax Computation<span class="nav-badge" id="nb-tax">—</span></div>
+  <div class="nav-item" onclick="showPanel('gst',this)"><span class="nav-ic">%</span>GST &amp; Service Tax<span class="nav-badge" id="nb-gst">—</span></div>
+  <div class="nav-item" onclick="showPanel('advance',this)"><span class="nav-ic">◷</span>Advance Tax<span class="nav-badge">Schedule</span></div>
+  <div class="nav-item" onclick="showPanel('deductions',this)"><span class="nav-ic">−</span>Deductions<span class="nav-badge">80C/D</span></div>
 
-  <div class="nav-item" onclick="showPanel('property', this)">
-    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M2 14V7L8 2l6 5v7H2z"/><rect x="5" y="10" width="2.5" height="4"/><rect x="8.5" y="10" width="2.5" height="4"/>
-    </svg>
-    House Property
-    <span class="nav-badge">13</span>
-  </div>
-
-  <div class="nav-item" onclick="showPanel('tax', this)">
-    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M3 1h10l1 4H2L3 1z"/><path d="M2 5l2 10h8l2-10"/>
-      <path d="M6 8h4M6 11h4"/>
-    </svg>
-    Tax Computation
-    <span class="nav-badge">₹18.86L</span>
-  </div>
-
-  <div class="nav-item" onclick="showPanel('gst', this)">
-    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="8" cy="8" r="6"/><path d="M8 5v6M5 8h6"/>
-    </svg>
-    GST &amp; Service Tax
-    <span class="nav-badge">₹4.64L</span>
-  </div>
-
-  <div class="nav-item" onclick="showPanel('loans', this)">
-    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="1" y="4" width="14" height="9" rx="1.5"/>
-      <path d="M1 7h14"/><path d="M5 10h2M9 10h2"/>
-    </svg>
-    Loans &amp; Liabilities
-    <span class="nav-badge">₹2.38L</span>
-  </div>
-
-  <div class="nav-item" onclick="showPanel('agriculture', this)">
-    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M8 15c0-4-5-6-6-9a6 6 0 0 1 12 0c-1 3-6 5-6 9z"/>
-    </svg>
-    Agriculture
-    <span class="nav-badge">₹7.2L</span>
-  </div>
-
-  <div class="nav-item" onclick="showPanel('capital', this)">
-    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M2 14V6l6-5 6 5v8"/><path d="M5 14v-4h6v4"/>
-    </svg>
-    Capital Accounts
-    <span class="nav-badge">3</span>
-  </div>
+  <div class="nav-group-label">Other Income</div>
+  <div class="nav-item" onclick="showPanel('salary',this)"><span class="nav-ic">₹</span>Partner Salary<span class="nav-badge">PM</span></div>
+  <div class="nav-item" onclick="showPanel('agri',this)"><span class="nav-ic">🌾</span>Agriculture<span class="nav-badge">Exempt</span></div>
 
   <div class="sidebar-footer">
     <div class="assessee-card">
-      <div class="assessee-name">Subbiah Muthukumaresan</div>
-      <div class="assessee-pan">AAIPM5399Q · DOB 18.05.1958</div>
-      <div class="assessee-ay">Senior Citizen · Old Regime · AY 2026-27</div>
+      <div class="ac-name">Subbiah Muthukumaresan</div>
+      <div class="ac-pan">AAIPM5399Q · DOB 18.05.1958</div>
+      <div class="ac-ay">Senior Citizen · Old Regime</div>
     </div>
   </div>
 </nav>
 
-<!-- ─── MAIN CONTENT ─── -->
+<!-- MAIN -->
 <main class="main">
 
-<!-- ══════════════════ OVERVIEW ══════════════════ -->
+<!-- ── OVERVIEW ── -->
 <div id="overview" class="panel active">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Financial <em>Overview</em></div>
-      <div class="page-subtitle">Assessment Year 2026-27 · Previous Year ending 31 March 2025</div>
-    </div>
-    <div class="page-actions">
-      <button class="btn btn-gold" onclick="window.print()">Export PDF</button>
-    </div>
+  <div class="page-hd">
+    <div><div class="page-title">Financial <em>Overview</em></div><div class="page-sub">Live computed from GitHub data · AY 2026-27</div></div>
   </div>
-
   <div class="kpi-grid">
-    <div class="kpi-card" style="--accent-color: var(--gold)">
-      <div class="kpi-label">Total Taxable Income</div>
-      <div class="kpi-value gold">₹69.2L</div>
-      <div class="kpi-sub">As per IT Computation</div>
-      <span class="kpi-trend trend-up">+12% YoY</span>
+    <div class="kpi" style="--kc:var(--gold)"><div class="kpi-label">Total Taxable Income</div><div class="kpi-value" id="kpi-taxable" style="color:var(--gold)">—</div><div class="kpi-sub">All heads · IT computation</div></div>
+    <div class="kpi" style="--kc:var(--red)"><div class="kpi-label">Net Tax Liability</div><div class="kpi-value" id="kpi-tax" style="color:var(--red)">—</div><div class="kpi-sub">Old regime · Sr Citizen</div><span class="kpi-badge kb-nu" id="kpi-eff-rate">—</span></div>
+    <div class="kpi" style="--kc:var(--teal)"><div class="kpi-label">Gross Rental Income</div><div class="kpi-value" id="kpi-rental" style="color:var(--teal)">—</div><div class="kpi-sub" id="kpi-rental-sub">— active properties</div></div>
+    <div class="kpi" style="--kc:var(--green)"><div class="kpi-label">TDS Deducted at Source</div><div class="kpi-value" id="kpi-tds" style="color:var(--green)">—</div><div class="kpi-sub">Rental + Salary TDS</div></div>
+  </div>
+  <div class="g31" style="margin-bottom:16px">
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Income Composition</span><span class="card-tag">FY 2025-26</span></div>
+      <div class="card-body">
+        <div class="chart-wrap" style="height:230px"><canvas id="donutChart"></canvas></div>
+        <div id="donutLegend" style="display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;margin-top:12px"></div>
+      </div>
     </div>
-    <div class="kpi-card" style="--accent-color: var(--red)">
-      <div class="kpi-label">Net Tax Liability</div>
-      <div class="kpi-value red">₹18.86L</div>
-      <div class="kpi-sub">After all deductions</div>
-      <span class="kpi-trend trend-neutral">30% slab</span>
-    </div>
-    <div class="kpi-card" style="--accent-color: var(--teal)">
-      <div class="kpi-label">Gross Rental Income</div>
-      <div class="kpi-value teal">₹28.6L</div>
-      <div class="kpi-sub">13 active properties</div>
-      <span class="kpi-trend trend-up">+8%</span>
-    </div>
-    <div class="kpi-card" style="--accent-color: var(--green)">
-      <div class="kpi-label">GST Collected</div>
-      <div class="kpi-value green">₹4.64L</div>
-      <div class="kpi-sub">18% on commercial rent</div>
-      <span class="kpi-trend trend-neutral">4 Qtrs</span>
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Top Properties</span><span class="card-tag">By Rent</span></div>
+      <div class="card-body" style="padding-top:10px"><div id="propBars"></div></div>
     </div>
   </div>
-
-  <div class="grid-3-1">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Income Composition</span>
-        <span class="card-tag">FY 2025-26</span>
-      </div>
-      <div class="card-body">
-        <div style="position:relative;width:100%;height:240px;">
-          <canvas id="donutChart"></canvas>
-        </div>
-        <div id="donutLegend" style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-top:14px;"></div>
-      </div>
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Monthly Collections (₹)</span><span class="card-tag">Stacked</span></div>
+      <div class="card-body"><div class="chart-wrap" style="height:200px"><canvas id="monthlyBar"></canvas></div></div>
     </div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Top Properties by Income</span>
-        <span class="card-tag">Ranked</span>
-      </div>
-      <div class="card-body" style="padding-top:12px;">
-        <div id="propBars"></div>
-      </div>
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Tax Slab Split</span><span class="card-tag">Horizontal</span></div>
+      <div class="card-body"><div class="chart-wrap" style="height:200px"><canvas id="taxSlabBar"></canvas></div></div>
     </div>
   </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Monthly Rent Collections (₹)</span>
-        <span class="card-tag">Top 3 Properties</span>
-      </div>
-      <div class="card-body">
-        <div style="position:relative;width:100%;height:220px;">
-          <canvas id="monthlyBar"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Tax Liability Breakdown</span>
-        <span class="card-tag">Slab-wise</span>
-      </div>
-      <div class="card-body">
-        <div style="position:relative;width:100%;height:220px;">
-          <canvas id="taxBar"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="card">
-    <div class="card-header">
-      <span class="card-title">Key Assessee Information</span>
-      <span class="card-tag">Reference</span>
-    </div>
+    <div class="card-hd"><span class="card-title">Quick Assessee Reference</span><span class="card-tag">IT Return</span></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--border)">
-      <div style="padding:16px 20px;border-right:1px solid var(--border)">
-        <div class="data-row"><span class="data-key">Name</span><span class="data-val">Subbiah Muthukumaresan</span></div>
-        <div class="data-row"><span class="data-key">Date of Birth</span><span class="data-val">18 May 1958</span></div>
-        <div class="data-row"><span class="data-key">Status</span><span class="data-val">Individual · Senior Citizen</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">PAN</span><span class="data-val gold" style="font-family:var(--font-mono)">AAIPM5399Q</span></div>
+      <div style="padding:14px 18px;border-right:1px solid var(--border)">
+        <div class="dr"><span class="dk">Name</span><span class="dv">Subbiah Muthukumaresan</span></div>
+        <div class="dr"><span class="dk">Date of Birth</span><span class="dv">18 May 1958</span></div>
+        <div class="dr"><span class="dk">PAN</span><span class="dv gold" style="font-family:var(--font-m)">AAIPM5399Q</span></div>
+        <div class="dr" style="border:none"><span class="dk">Status</span><span class="dv">Senior Citizen</span></div>
       </div>
-      <div style="padding:16px 20px;border-right:1px solid var(--border)">
-        <div class="data-row"><span class="data-key">Assessment Year</span><span class="data-val">2026-27</span></div>
-        <div class="data-row"><span class="data-key">Previous Year End</span><span class="data-val">31 March 2025</span></div>
-        <div class="data-row"><span class="data-key">Tax Regime</span><span class="data-val">Old Regime</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Ward</span><span class="data-val">ACIT VI, Non Corp Cir 9(1)</span></div>
+      <div style="padding:14px 18px;border-right:1px solid var(--border)">
+        <div class="dr"><span class="dk">Assessment Year</span><span class="dv">2026-27</span></div>
+        <div class="dr"><span class="dk">Previous Year End</span><span class="dv">31 March 2025</span></div>
+        <div class="dr"><span class="dk">Tax Regime</span><span class="dv">Old Regime</span></div>
+        <div class="dr" style="border:none"><span class="dk">Ward/Circle</span><span class="dv" style="font-size:11px">ACIT VI, Non Corp Cir 9(1)</span></div>
       </div>
-      <div style="padding:16px 20px;">
-        <div class="data-row"><span class="data-key">80C Deduction</span><span class="data-val green">₹1,50,000</span></div>
-        <div class="data-row"><span class="data-key">Sr Citizen Exemption</span><span class="data-val green">₹3,00,000</span></div>
-        <div class="data-row"><span class="data-key">Agriculture Exempt</span><span class="data-val green">₹7,20,300</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Effective Rate</span><span class="data-val gold">27.3%</span></div>
+      <div style="padding:14px 18px">
+        <div class="dr"><span class="dk">80C Claimed</span><span class="dv green" id="ov-80c">—</span></div>
+        <div class="dr"><span class="dk">Sr Citizen Basic Exempt</span><span class="dv green">₹3,00,000</span></div>
+        <div class="dr"><span class="dk">Agriculture Exempt</span><span class="dv green" id="ov-agri">—</span></div>
+        <div class="dr" style="border:none"><span class="dk">Effective Tax Rate</span><span class="dv gold" id="ov-eff">—</span></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════ INCOME SOURCES ══════════════════ -->
+<!-- ── INCOME SOURCES ── -->
 <div id="income" class="panel">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Income <em>Sources</em></div>
-      <div class="page-subtitle">All heads of income for AY 2026-27</div>
-    </div>
-  </div>
-
+  <div class="page-hd"><div><div class="page-title">Income <em>Sources</em></div><div class="page-sub">All heads · Click cells to edit inline</div></div></div>
   <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">House Property</div><div class="kpi-value gold">₹28.6L</div><div class="kpi-sub">Gross · 13 properties</div></div>
-    <div class="kpi-card"><div class="kpi-label">Partner Salary (PM)</div><div class="kpi-value teal">₹9.67L</div><div class="kpi-sub">TDS deducted ₹96,664</div></div>
-    <div class="kpi-card"><div class="kpi-label">Agriculture</div><div class="kpi-value green">₹7.20L</div><div class="kpi-sub">Tax exempt (IT Act)</div></div>
-    <div class="kpi-card"><div class="kpi-label">Other Income</div><div class="kpi-value">₹~3,250</div><div class="kpi-sub">SB interest · dividends</div></div>
+    <div class="kpi"><div class="kpi-label">House Property (Gross)</div><div class="kpi-value" id="is-hp" style="color:var(--teal)">—</div><div class="kpi-sub">Before 30% Sec 24 dedn</div></div>
+    <div class="kpi"><div class="kpi-label">Partner Salary (PM)</div><div class="kpi-value" id="is-sal" style="color:var(--gold)">—</div><div class="kpi-sub">Before TDS</div></div>
+    <div class="kpi"><div class="kpi-label">Agriculture (Exempt)</div><div class="kpi-value" id="is-agri" style="color:var(--green)">—</div><div class="kpi-sub">Sec 10(1) — for slab only</div></div>
+    <div class="kpi"><div class="kpi-label">Other Income</div><div class="kpi-value" id="is-other" style="color:var(--blue)">—</div><div class="kpi-sub">SB interest · dividends</div></div>
   </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-header">
-      <span class="card-title">All Rental Income — Property-wise</span>
-      <span class="card-tag">House Property Head</span>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">All Rental Properties — Edit Mode</span><span class="card-tag" id="income-edit-hint">Click any rent cell to edit</span></div>
+    <div id="income-edit-toolbar" style="display:none" class="edit-toolbar">
+      ✏ Editing income data — changes save to GitHub
+      <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+      <button class="save-btn" onclick="saveToGitHub()">Save to GitHub ↑</button>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th><th>Property</th><th>Tenant</th><th>Location</th>
-            <th>Months</th><th style="text-align:right">Gross (₹)</th>
-            <th style="text-align:right">GST (₹)</th><th style="text-align:right">TDS (₹)</th>
-            <th style="text-align:right">Net Recd (₹)</th><th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono" style="color:var(--text3)">01</td>
-            <td class="prop-name">Madhavaram Shed</td><td>Premier Mktg (PM)</td><td>Madhavaram, Chennai</td>
-            <td class="num">12</td><td class="num">16,00,000</td><td class="num">2,88,000</td><td class="num" style="color:var(--red)">1,60,000</td><td class="num">14,40,000</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">02</td>
-            <td class="prop-name">TNY Tirunelveli Bldg</td><td>Premier Mktg (PM)</td><td>NGO Colony, Tirunelveli</td>
-            <td class="num">12</td><td class="num">4,80,000</td><td class="num">86,400</td><td class="num" style="color:var(--red)">48,000</td><td class="num">4,32,000</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">03</td>
-            <td class="prop-name">Thuraipakkam Flat H43</td><td>Viveksajwan (Private)</td><td>OMR, Chennai</td>
-            <td class="num">12</td><td class="num">3,60,000</td><td class="num">—</td><td class="num">0</td><td class="num">3,60,000</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">04</td>
-            <td class="prop-name">HWI KI Big Oven Area</td><td>HWI</td><td>SR Kandigai, Gummidipoondi</td>
-            <td class="num">4</td><td class="num">1,15,200</td><td class="num">20,736</td><td class="num" style="color:var(--red)">11,520</td><td class="num">1,24,416</td>
-            <td><span class="badge badge-amber">4 Months</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">05</td>
-            <td class="prop-name">KHC TNY Branch</td><td>Nethra Wholesale (KHC)</td><td>NGO Colony, Tirunelveli</td>
-            <td class="num">12</td><td class="num">1,60,000</td><td class="num">28,800</td><td class="num" style="color:var(--red)">16,000</td><td class="num">1,44,000</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">06</td>
-            <td class="prop-name">Madhavaram Staff Build</td><td>Premier Mktg (PM)</td><td>Madhavaram, Chennai</td>
-            <td class="num">12</td><td class="num">52,000</td><td class="num">9,360</td><td class="num" style="color:var(--red)">5,200</td><td class="num">46,800</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">07</td>
-            <td class="prop-name">KHC Madhavaram Godown</td><td>KHC</td><td>Madhavaram, Chennai</td>
-            <td class="num">12</td><td class="num">52,000</td><td class="num">9,360</td><td class="num" style="color:var(--red)">5,200</td><td class="num">46,800</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">08</td>
-            <td class="prop-name">SCI Madhavaram Godown</td><td>SCI (Godown Part)</td><td>Madhavaram, Chennai</td>
-            <td class="num">4</td><td class="num">40,000</td><td class="num">7,200</td><td class="num">0</td><td class="num">40,000</td>
-            <td><span class="badge badge-amber">4 Months</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">09</td>
-            <td class="prop-name">DD Madhavaram Office</td><td>DD (Virtual Office)</td><td>Madhavaram, Chennai</td>
-            <td class="num">12</td><td class="num">28,800</td><td class="num">5,184</td><td class="num">0</td><td class="num">28,800</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">10</td>
-            <td class="prop-name">HWI Dinning/Sandblast</td><td>HWI</td><td>SR Kandigai</td>
-            <td class="num">4</td><td class="num">21,600</td><td class="num">3,888</td><td class="num" style="color:var(--red)">2,160</td><td class="num">19,440</td>
-            <td><span class="badge badge-amber">4 Months</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">11</td>
-            <td class="prop-name">Udangudi Shop 1</td><td>Aruna Jewellery</td><td>Udangudi Bazaar</td>
-            <td class="num">12</td><td class="num">15,254</td><td class="num">2,746</td><td class="num">0</td><td class="num">15,254</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">12</td>
-            <td class="prop-name">Udangudi Shop 2</td><td>Selvam Stores</td><td>Udangudi Bazaar</td>
-            <td class="num">12</td><td class="num">15,254</td><td class="num">2,746</td><td class="num">0</td><td class="num">15,254</td>
-            <td><span class="badge badge-green">Active</span></td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text3)">13</td>
-            <td class="prop-name">GPD Factory Land (SSC)</td><td>PAC Roll Factory</td><td>SR Kandigai, GPD</td>
-            <td class="num">—</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td>
-            <td><span class="badge badge-red">NIL</span></td>
-          </tr>
-          <tr class="total-row">
-            <td colspan="4"><strong>Total House Property</strong></td>
-            <td class="num">—</td><td class="num">28,40,108</td><td class="num">4,64,420</td><td class="num">2,48,080</td><td class="num">26,12,764</td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <div class="tw"><table id="incomeTable">
+      <thead><tr>
+        <th>#</th><th>Property</th><th>Tenant</th><th>Type</th>
+        <th style="text-align:right">Annual Rent (₹)</th>
+        <th style="text-align:right">GST (₹)</th>
+        <th style="text-align:right">TDS (₹)</th>
+        <th style="text-align:right">Net Recd (₹)</th>
+        <th>Status</th>
+      </tr></thead>
+      <tbody id="incomeTableBody"></tbody>
+    </table></div>
   </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-header"><span class="card-title">Partner Salary — Premier Marketing</span><span class="card-tag">PM_PARTNER_SALARY</span></div>
-      <div class="card-body">
-        <div class="data-row"><span class="data-key">Gross Salary (FY 2025-26)</span><span class="data-val gold">₹9,66,664</span></div>
-        <div class="data-row"><span class="data-key">Apr–Jul (₹75,000/mo × 4)</span><span class="data-val">₹3,00,000</span></div>
-        <div class="data-row"><span class="data-key">Aug–Mar (₹83,333/mo × 8)</span><span class="data-val">₹6,66,664</span></div>
-        <div class="data-row"><span class="data-key">TDS Deducted (10%)</span><span class="data-val red">₹96,664</span></div>
-        <div class="data-row"><span class="data-key">Net Amount Received</span><span class="data-val green">₹8,70,000</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">History (since Apr 2015)</span><span class="data-val">₹1.5L → ₹9.67L</span></div>
-      </div>
+  <div class="g2">
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Salary — Premier Marketing</span><span class="card-tag">Editable</span></div>
+      <div class="card-body" id="salaryCard"></div>
     </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">Advance Tax Planning</span><span class="card-tag">Sec 208 Obligation</span></div>
-      <div class="card-body">
-        <div class="timeline">
-          <div class="timeline-item">
-            <div class="timeline-dot filled"></div>
-            <div class="timeline-date">15 JUNE 2025</div>
-            <div class="timeline-label">1st Instalment — 15%</div>
-            <div class="timeline-amt">₹2,82,929</div>
-            <div class="timeline-note">Due date passed — verify payment</div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-dot filled"></div>
-            <div class="timeline-date">15 SEPTEMBER 2025</div>
-            <div class="timeline-label">2nd Instalment — 45% cumulative</div>
-            <div class="timeline-amt">₹5,66,929 additional</div>
-            <div class="timeline-note">Pay ₹8,49,787 cumul by this date</div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-date">15 DECEMBER 2025</div>
-            <div class="timeline-label">3rd Instalment — 75% cumulative</div>
-            <div class="timeline-amt">₹5,64,929 additional</div>
-            <div class="timeline-note">₹14,14,645 cumul by this date</div>
-          </div>
-          <div class="timeline-item" style="margin-bottom:0">
-            <div class="timeline-dot grey"></div>
-            <div class="timeline-date">15 MARCH 2026</div>
-            <div class="timeline-label">Final Instalment — 100%</div>
-            <div class="timeline-amt">₹4,71,549 balance</div>
-            <div class="timeline-note">Total ₹18,86,194 by 31 March</div>
-          </div>
-        </div>
-      </div>
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Other Income</span><span class="card-tag">Editable</span></div>
+      <div class="card-body" id="otherIncomeCard"></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════ HOUSE PROPERTY ══════════════════ -->
+<!-- ── HOUSE PROPERTY ── -->
 <div id="property" class="panel">
-  <div class="page-header">
-    <div>
-      <div class="page-title">House <em>Property</em></div>
-      <div class="page-subtitle">IT computation — Income from House Property (Sec 22 to 27)</div>
-    </div>
-  </div>
-
+  <div class="page-hd"><div><div class="page-title">House <em>Property</em></div><div class="page-sub">IT Schedule — Sec 22 to 27 · 30% standard repair deduction</div></div></div>
   <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">Active Properties</div><div class="kpi-value gold">13</div><div class="kpi-sub">Across 4 cities</div></div>
-    <div class="kpi-card"><div class="kpi-label">Gross Annual Rent</div><div class="kpi-value teal">₹28.4L</div><div class="kpi-sub">All leases combined</div></div>
-    <div class="kpi-card"><div class="kpi-label">30% Repair Dedn (Sec 24a)</div><div class="kpi-value red">₹8.82L</div><div class="kpi-sub">Standard deduction</div></div>
-    <div class="kpi-card"><div class="kpi-label">Net HP Income (IT)</div><div class="kpi-value green">₹19.6L</div><div class="kpi-sub">As per IT schedule</div></div>
+    <div class="kpi"><div class="kpi-label">Gross Rent</div><div class="kpi-value" id="hp-gross" style="color:var(--teal)">—</div><div class="kpi-sub">All 13 properties</div></div>
+    <div class="kpi"><div class="kpi-label">30% Repair Dedn (Sec 24a)</div><div class="kpi-value" id="hp-repair" style="color:var(--red)">—</div><div class="kpi-sub">Flat standard deduction</div></div>
+    <div class="kpi"><div class="kpi-label">Net HP Income</div><div class="kpi-value" id="hp-net" style="color:var(--gold)">—</div><div class="kpi-sub">Added to total income</div></div>
+    <div class="kpi"><div class="kpi-label">Total TDS on Rent</div><div class="kpi-value" id="hp-tds" style="color:var(--green)">—</div><div class="kpi-sub">Credit in IT return</div></div>
   </div>
-
-  <div class="grid-3-1">
-    <div class="card">
-      <div class="card-header"><span class="card-title">IT Computation — House Property Schedule</span><span class="card-tag">Sec 24</span></div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Property</th><th>Tenant</th><th style="text-align:right">Gross Rent</th><th style="text-align:right">Corp Tax</th><th style="text-align:right">Actual Value</th><th style="text-align:right">30% Repair</th><th style="text-align:right">Net (₹)</th></tr>
-          </thead>
-          <tbody>
-            <tr><td class="prop-name">SR Kandigai (HWI)</td><td>HWI</td><td class="num">1,36,800</td><td class="num">0</td><td class="num">1,36,800</td><td class="num">41,040</td><td class="num">95,760</td></tr>
-            <tr><td class="prop-name">Madhavaram Shed (PM)</td><td>Premier Mktg</td><td class="num">16,00,000</td><td class="num">0</td><td class="num">16,00,000</td><td class="num">4,80,000</td><td class="num">11,20,000</td></tr>
-            <tr><td class="prop-name">Madhavaram Staff (PM)</td><td>Premier Mktg</td><td class="num">52,000</td><td class="num">0</td><td class="num">52,000</td><td class="num">15,600</td><td class="num">36,400</td></tr>
-            <tr><td class="prop-name">Madhavaram (SCI)</td><td>SCI</td><td class="num">40,000</td><td class="num">0</td><td class="num">40,000</td><td class="num">12,000</td><td class="num">28,000</td></tr>
-            <tr><td class="prop-name">Madhavaram Godown (KHC)</td><td>KHC</td><td class="num">52,000</td><td class="num">0</td><td class="num">52,000</td><td class="num">15,600</td><td class="num">36,400</td></tr>
-            <tr><td class="prop-name">Madhavaram (DD)</td><td>DD Virtual</td><td class="num">28,800</td><td class="num">0</td><td class="num">28,800</td><td class="num">8,640</td><td class="num">20,160</td></tr>
-            <tr><td class="prop-name">Tirunelveli (PM)</td><td>PM Branch</td><td class="num">4,80,000</td><td class="num">0</td><td class="num">4,80,000</td><td class="num">1,44,000</td><td class="num">3,36,000</td></tr>
-            <tr><td class="prop-name">Tirunelveli (KHC)</td><td>Nethra</td><td class="num">1,60,000</td><td class="num">0</td><td class="num">1,60,000</td><td class="num">48,000</td><td class="num">1,12,000</td></tr>
-            <tr><td class="prop-name">Thuraipakkam H43</td><td>Viveksajwan</td><td class="num">3,60,000</td><td class="num">0</td><td class="num">3,60,000</td><td class="num">1,08,000</td><td class="num">2,52,000</td></tr>
-            <tr><td class="prop-name">Udangudi Shop 1</td><td>Aruna Jwl</td><td class="num">15,254</td><td class="num">0</td><td class="num">15,254</td><td class="num">4,576</td><td class="num">10,678</td></tr>
-            <tr><td class="prop-name">Udangudi Shop 2</td><td>Selvam Stores</td><td class="num">15,254</td><td class="num">0</td><td class="num">15,254</td><td class="num">4,576</td><td class="num">10,678</td></tr>
-            <tr class="total-row"><td colspan="4"><strong>TOTAL</strong></td><td class="num">27,40,108</td><td class="num">8,82,032</td><td class="num">19,58,076</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">Income by Location</span><span class="card-tag">City split</span></div>
-      <div class="card-body">
-        <div style="position:relative;width:100%;height:200px;"><canvas id="cityPie"></canvas></div>
-        <div style="margin-top:14px;">
-          <div class="prop-bar-wrap">
-            <div class="prop-bar-header"><span class="prop-bar-name">Madhavaram</span><span class="prop-bar-amt">₹17.7L</span></div>
-            <div class="prop-bar"><div class="prop-bar-fill" style="width:63%"></div></div>
-          </div>
-          <div class="prop-bar-wrap">
-            <div class="prop-bar-header"><span class="prop-bar-name">Tirunelveli</span><span class="prop-bar-amt">₹6.4L</span></div>
-            <div class="prop-bar"><div class="prop-bar-fill" style="width:23%"></div></div>
-          </div>
-          <div class="prop-bar-wrap">
-            <div class="prop-bar-header"><span class="prop-bar-name">OMR / Thuraipakkam</span><span class="prop-bar-amt">₹3.6L</span></div>
-            <div class="prop-bar"><div class="prop-bar-fill" style="width:13%"></div></div>
-          </div>
-          <div class="prop-bar-wrap" style="margin-bottom:0">
-            <div class="prop-bar-header"><span class="prop-bar-name">Udangudi / GPD</span><span class="prop-bar-amt">₹0.45L</span></div>
-            <div class="prop-bar"><div class="prop-bar-fill" style="width:2%"></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ TAX COMPUTATION ══════════════════ -->
-<div id="tax" class="panel">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Tax <em>Computation</em></div>
-      <div class="page-subtitle">Old Regime · Senior Citizen · AY 2026-27</div>
-    </div>
-  </div>
-
-  <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">Net HP Income</div><div class="kpi-value">₹19.58L</div><div class="kpi-sub">After Sec 24 deductions</div></div>
-    <div class="kpi-card"><div class="kpi-label">Taxable Income (Final)</div><div class="kpi-value gold">₹69.2L</div><div class="kpi-sub">All heads combined</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total Tax Due</div><div class="kpi-value red">₹18,86,194</div><div class="kpi-sub">Including cess</div></div>
-    <div class="kpi-card"><div class="kpi-label">80C Claimed</div><div class="kpi-value green">₹1,50,000</div><div class="kpi-sub">LIC / Investments</div></div>
-  </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-header"><span class="card-title">Slab-wise Tax Calculation</span><span class="card-tag">Old Regime</span></div>
-      <div class="card-body">
-        <div class="slab-row">
-          <div class="slab-range-box"><div style="font-size:12px;color:var(--text)">Senior Citizen Exemption</div><div style="font-size:11px;color:var(--text3)">Nil upto ₹3,00,000</div></div>
-          <div class="slab-pct" style="color:var(--green)">0%</div>
-          <div class="slab-bar-wrap"><div class="slab-bar"><div class="slab-bar-fill" style="width:0%;background:var(--green)"></div></div></div>
-          <div class="slab-tax-amt" style="color:var(--text3)">—</div>
-        </div>
-        <div class="slab-row">
-          <div class="slab-range-box"><div style="font-size:12px;color:var(--text)">₹3L to ₹5L</div><div style="font-size:11px;color:var(--text3)">Balance ₹2,00,000</div></div>
-          <div class="slab-pct" style="color:var(--blue)">5%</div>
-          <div class="slab-bar-wrap"><div class="slab-bar"><div class="slab-bar-fill" style="width:1%;background:var(--blue)"></div></div></div>
-          <div class="slab-tax-amt" style="color:var(--blue)">₹10,000</div>
-        </div>
-        <div class="slab-row">
-          <div class="slab-range-box"><div style="font-size:12px;color:var(--text)">₹5L to ₹10L</div><div style="font-size:11px;color:var(--text3)">₹5,00,000</div></div>
-          <div class="slab-pct" style="color:var(--amber)">20%</div>
-          <div class="slab-bar-wrap"><div class="slab-bar"><div class="slab-bar-fill" style="width:6%;background:var(--amber)"></div></div></div>
-          <div class="slab-tax-amt" style="color:var(--amber)">₹1,00,000</div>
-        </div>
-        <div class="slab-row" style="border:none">
-          <div class="slab-range-box"><div style="font-size:12px;color:var(--text)">Above ₹10L</div><div style="font-size:11px;color:var(--text3)">₹59,20,646</div></div>
-          <div class="slab-pct" style="color:var(--red)">30%</div>
-          <div class="slab-bar-wrap"><div class="slab-bar"><div class="slab-bar-fill" style="width:93%;background:var(--red)"></div></div></div>
-          <div class="slab-tax-amt" style="color:var(--red)">₹17,76,194</div>
-        </div>
-        <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text3)">NET TAX DUE (FINAL)</span>
-          <span style="font-family:var(--font-display);font-size:24px;color:var(--gold)">₹18,86,194</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header"><span class="card-title">Income Computation Summary</span><span class="card-tag">IT Return</span></div>
-      <div class="card-body">
-        <div class="data-row"><span class="data-key">Income from House Property (Net)</span><span class="data-val">₹19,58,076</span></div>
-        <div class="data-row"><span class="data-key">Partner Salary (Premier Marketing)</span><span class="data-val">₹9,66,664</span></div>
-        <div class="data-row"><span class="data-key">Agriculture Income (Exempt — slab only)</span><span class="data-val green">₹7,20,300</span></div>
-        <div class="data-row"><span class="data-key">Other Income (SB interest / dividends)</span><span class="data-val">₹~3,250</span></div>
-        <div class="data-row" style="border-top:1px solid var(--border2)"><span class="data-key">Gross Total Income</span><span class="data-val">₹~29.28L</span></div>
-        <div class="data-row"><span class="data-key">Less: 80C Deduction (LIC/Investments)</span><span class="data-val red">− ₹1,50,000</span></div>
-        <div class="data-row"><span class="data-key">Less: Medical Insurance (80D)</span><span class="data-val red">− Verify</span></div>
-        <div class="data-row"><span class="data-key">Net Taxable Income</span><span class="data-val gold">₹69,20,646</span></div>
-        <div class="data-row"><span class="data-key">Tax on above (old regime)</span><span class="data-val red">₹18,86,193.80</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Education Cess 4%</span><span class="data-val">Included above</span></div>
-      </div>
-    </div>
-  </div>
-
   <div class="card">
-    <div class="card-header"><span class="card-title">Tax Optimisation Checklist</span><span class="card-tag">Planning Levers</span></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Section</th><th>Description</th><th style="text-align:right">Max Limit (₹)</th><th style="text-align:right">Claimed (₹)</th><th>Action</th></tr></thead>
-        <tbody>
-          <tr><td class="mono" style="color:var(--gold)">80C</td><td>LIC, PPF, ELSS, NSC, FD 5yr</td><td class="num">1,50,000</td><td class="num" style="color:var(--green)">1,50,000</td><td><span class="badge badge-green">Claimed</span></td></tr>
-          <tr><td class="mono" style="color:var(--gold)">80D</td><td>Medical Insurance — self &amp; family (Sr Citizen)</td><td class="num">50,000</td><td class="num" style="color:var(--amber)">Verify</td><td><span class="badge badge-amber">Check</span></td></tr>
-          <tr><td class="mono" style="color:var(--gold)">80TTA/TTB</td><td>SB Account / Deposit Interest (Sr Citizen)</td><td class="num">50,000</td><td class="num" style="color:var(--amber)">Verify</td><td><span class="badge badge-amber">Review</span></td></tr>
-          <tr><td class="mono" style="color:var(--gold)">24(b)</td><td>Interest on housing loan (if any)</td><td class="num">2,00,000</td><td class="num" style="color:var(--text3)">—</td><td><span class="badge badge-blue">Explore</span></td></tr>
-          <tr><td class="mono" style="color:var(--gold)">Prof Tax</td><td>Professional tax deductible from salary</td><td class="num">2,500</td><td class="num" style="color:var(--amber)">Verify</td><td><span class="badge badge-amber">Verify</span></td></tr>
-          <tr><td class="mono" style="color:var(--gold)">Agri Exempt</td><td>Agriculture income — partial tax method</td><td class="num">7,20,300</td><td class="num" style="color:var(--green)">7,20,300</td><td><span class="badge badge-green">Applied</span></td></tr>
-          <tr><td class="mono" style="color:var(--gold)">Advance Tax</td><td>4 installments — avoid 1% interest u/s 234B/C</td><td class="num">18,86,194</td><td class="num" style="color:var(--amber)">Schedule</td><td><span class="badge badge-amber">Plan Now</span></td></tr>
-        </tbody>
-      </table>
+    <div class="card-hd"><span class="card-title">IT Computation — House Property Schedule</span><span class="card-tag">Auto-computed</span></div>
+    <div class="tw"><table id="hpTable">
+      <thead><tr>
+        <th>Property</th><th>Tenant</th><th>Location</th>
+        <th style="text-align:right">Gross Rent (₹)</th>
+        <th style="text-align:right">30% Repair (₹)</th>
+        <th style="text-align:right">Net IT (₹)</th>
+        <th style="text-align:right">TDS (₹)</th>
+        <th>Type</th>
+      </tr></thead>
+      <tbody id="hpTableBody"></tbody>
+    </table></div>
+  </div>
+  <div class="g2">
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Income by Location</span><span class="card-tag">City Split</span></div>
+      <div class="card-body"><div class="chart-wrap" style="height:200px"><canvas id="cityDonut"></canvas></div><div id="cityBars" style="margin-top:12px"></div></div>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Income by Property Type</span><span class="card-tag">Commercial vs Residential</span></div>
+      <div class="card-body"><div class="chart-wrap" style="height:200px"><canvas id="typeDonut"></canvas></div><div id="typeDetails" style="margin-top:12px"></div></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════ GST ══════════════════ -->
-<div id="gst" class="panel">
-  <div class="page-header">
-    <div>
-      <div class="page-title">GST &amp; <em>Service Tax</em></div>
-      <div class="page-subtitle">18% GST on commercial rental income · Quarterly filing</div>
-    </div>
-  </div>
-
+<!-- ── MONTHLY TRACKER ── -->
+<div id="months" class="panel">
+  <div class="page-hd"><div><div class="page-title">Monthly <em>Tracker</em></div><div class="page-sub">Click months to toggle paid/unpaid · auto-saves to GitHub</div></div></div>
   <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">Total Rent Billed</div><div class="kpi-value gold">₹25.80L</div><div class="kpi-sub">All properties</div></div>
-    <div class="kpi-card"><div class="kpi-label">GST Collected</div><div class="kpi-value teal">₹4.64L</div><div class="kpi-sub">@ 18% on commercial</div></div>
-    <div class="kpi-card"><div class="kpi-label">Q1 (Apr–Jun)</div><div class="kpi-value">₹1.83L</div><div class="kpi-sub">Highest quarter</div></div>
-    <div class="kpi-card"><div class="kpi-label">Q4 (Jan–Mar)</div><div class="kpi-value green">₹0.82L</div><div class="kpi-sub">Post rent reduction</div></div>
+    <div class="kpi"><div class="kpi-label">Months Collected</div><div class="kpi-value" id="mt-paid" style="color:var(--green)">—</div><div class="kpi-sub">Out of possible months</div></div>
+    <div class="kpi"><div class="kpi-label">Amount Received</div><div class="kpi-value" id="mt-recd" style="color:var(--gold)">—</div><div class="kpi-sub">Paid months only</div></div>
+    <div class="kpi"><div class="kpi-label">Pending Amount</div><div class="kpi-value" id="mt-pend" style="color:var(--amber)">—</div><div class="kpi-sub">Yet to receive</div></div>
+    <div class="kpi"><div class="kpi-label">Collection Rate</div><div class="kpi-value" id="mt-rate" style="color:var(--teal)">—</div><div class="kpi-sub">% of total expected</div></div>
   </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-header"><span class="card-title">Quarterly GST Summary — All Properties</span><span class="card-tag">GST Report Sheet</span></div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Property</th><th>Tenant</th>
-            <th style="text-align:right">Q1 Rent</th><th style="text-align:right">Q1 GST</th>
-            <th style="text-align:right">Q2 Rent</th><th style="text-align:right">Q2 GST</th>
-            <th style="text-align:right">Q3 Rent</th><th style="text-align:right">Q3 GST</th>
-            <th style="text-align:right">Q4 Rent</th><th style="text-align:right">Q4 GST</th>
-            <th style="text-align:right">Annual</th><th style="text-align:right">Total GST</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="prop-name">HWI Oven Area</td><td>HWI</td><td class="num">86,400</td><td class="num">15,552</td><td class="num">28,800</td><td class="num">5,184</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">1,15,200</td><td class="num">20,736</td></tr>
-          <tr><td class="prop-name">HWI Sandblast</td><td>HWI</td><td class="num">16,200</td><td class="num">2,916</td><td class="num">5,400</td><td class="num">972</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">21,600</td><td class="num">3,888</td></tr>
-          <tr><td class="prop-name">TNY PM Branch</td><td>Premier Mktg</td><td class="num">1,80,000</td><td class="num">32,400</td><td class="num">1,20,000</td><td class="num">21,600</td><td class="num">90,000</td><td class="num">16,200</td><td class="num">90,000</td><td class="num">16,200</td><td class="num">4,80,000</td><td class="num">86,400</td></tr>
-          <tr><td class="prop-name">TNY KHC Branch</td><td>Nethra</td><td class="num">60,000</td><td class="num">10,800</td><td class="num">40,000</td><td class="num">7,200</td><td class="num">30,000</td><td class="num">5,400</td><td class="num">30,000</td><td class="num">5,400</td><td class="num">1,60,000</td><td class="num">28,800</td></tr>
-          <tr><td class="prop-name">Madhavaram Shed</td><td>Premier Mktg</td><td class="num">6,00,000</td><td class="num">1,08,000</td><td class="num">4,00,000</td><td class="num">72,000</td><td class="num">3,00,000</td><td class="num">54,000</td><td class="num">3,00,000</td><td class="num">54,000</td><td class="num">16,00,000</td><td class="num">2,88,000</td></tr>
-          <tr><td class="prop-name">Madhavaram Staff</td><td>Premier Mktg</td><td class="num">19,500</td><td class="num">3,510</td><td class="num">13,000</td><td class="num">2,340</td><td class="num">9,750</td><td class="num">1,755</td><td class="num">9,750</td><td class="num">1,755</td><td class="num">52,000</td><td class="num">9,360</td></tr>
-          <tr><td class="prop-name">Madhavaram (SCI)</td><td>SCI</td><td class="num">30,000</td><td class="num">5,400</td><td class="num">10,000</td><td class="num">1,800</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">40,000</td><td class="num">7,200</td></tr>
-          <tr><td class="prop-name">Madhavaram (DD)</td><td>DD Virtual</td><td class="num">7,200</td><td class="num">1,296</td><td class="num">7,200</td><td class="num">1,296</td><td class="num">7,200</td><td class="num">1,296</td><td class="num">7,200</td><td class="num">1,296</td><td class="num">28,800</td><td class="num">5,184</td></tr>
-          <tr><td class="prop-name">Udangudi Shop 1</td><td>Aruna Jwl</td><td class="num">3,813</td><td class="num">686</td><td class="num">3,813</td><td class="num">686</td><td class="num">3,813</td><td class="num">686</td><td class="num">3,813</td><td class="num">686</td><td class="num">15,254</td><td class="num">2,746</td></tr>
-          <tr><td class="prop-name">Udangudi Shop 2</td><td>Selvam Stores</td><td class="num">3,813</td><td class="num">686</td><td class="num">3,813</td><td class="num">686</td><td class="num">3,813</td><td class="num">686</td><td class="num">3,813</td><td class="num">686</td><td class="num">15,254</td><td class="num">2,746</td></tr>
-          <tr class="total-row">
-            <td colspan="2"><strong>Grand Total</strong></td>
-            <td class="num">10,06,926</td><td class="num">1,81,246</td>
-            <td class="num">6,32,026</td><td class="num">1,13,764</td>
-            <td class="num">4,44,576</td><td class="num">80,023</td>
-            <td class="num">4,44,576</td><td class="num">80,023</td>
-            <td class="num">25,28,108</td><td class="num">4,55,056</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-header"><span class="card-title">GST by Quarter (₹)</span><span class="card-tag">Bar Chart</span></div>
-      <div class="card-body"><div style="position:relative;width:100%;height:220px;"><canvas id="gstQuarterBar"></canvas></div></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">Filing Due Dates</span><span class="card-tag">GSTR-1 / 3B</span></div>
-      <div class="card-body">
-        <div class="data-row"><span class="data-key">Q1 (Apr–Jun 2025)</span><span class="data-val" style="color:var(--amber)">20 Jul 2025 — ₹1,81,246</span></div>
-        <div class="data-row"><span class="data-key">Q2 (Jul–Sep 2025)</span><span class="data-val" style="color:var(--amber)">20 Oct 2025 — ₹1,13,764</span></div>
-        <div class="data-row"><span class="data-key">Q3 (Oct–Dec 2025)</span><span class="data-val">20 Jan 2026 — ₹80,023</span></div>
-        <div class="data-row"><span class="data-key">Q4 (Jan–Mar 2026)</span><span class="data-val">20 Apr 2026 — ₹80,023</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Annual Total</span><span class="data-val gold">₹4,55,056</span></div>
-        <div style="margin-top:14px;padding:12px;background:var(--amber-dim);border-radius:var(--radius-sm);border:1px solid rgba(251,191,36,0.2)">
-          <div style="font-size:11px;color:var(--amber);font-family:var(--font-mono);letter-spacing:0.05em">NOTE</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Udangudi shops (Aruna &amp; Selvam) — GST fully due to SMK. Confirmed with Ganesh. Thuraipakkam Flat H43 is residential — no GST applicable.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ LOANS ══════════════════ -->
-<div id="loans" class="panel">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Loans &amp; <em>Liabilities</em></div>
-      <div class="page-subtitle">ICICI Car Loan · Toyota Advance · Car Loan Schedule</div>
-    </div>
-  </div>
-
-  <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">Original Loan (ICICI)</div><div class="kpi-value">₹30.00L</div><div class="kpi-sub">Loan disbursed Apr 2021</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total Due (with interest)</div><div class="kpi-value red">₹35.18L</div><div class="kpi-sub">Interest ₹5.77L</div></div>
-    <div class="kpi-card"><div class="kpi-label">Balance Outstanding</div><div class="kpi-value amber" style="color:var(--amber)">₹2,38,446</div><div class="kpi-sub">As of 10/04/2026</div></div>
-    <div class="kpi-card"><div class="kpi-label">Monthly EMI</div><div class="kpi-value gold">₹59,625</div><div class="kpi-sub">Last: ₹59,571 on 10/04/2026</div></div>
-  </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-header"><span class="card-title">ICICI Car Loan Summary</span><span class="card-tag">CAR_LOAN_ICICI</span></div>
-      <div class="card-body">
-        <div class="data-row"><span class="data-key">Loan Purpose</span><span class="data-val">Toyota Car — VST Titanium Motors</span></div>
-        <div class="data-row"><span class="data-key">Loan Disbursed</span><span class="data-val">₹30,00,000 (Apr 2021)</span></div>
-        <div class="data-row"><span class="data-key">Processing + Advance EMI</span><span class="data-val red">₹64,229</span></div>
-        <div class="data-row"><span class="data-key">Net Loan (after deductions)</span><span class="data-val">₹29,35,771</span></div>
-        <div class="data-row"><span class="data-key">Total Interest to date</span><span class="data-val red">₹5,77,446</span></div>
-        <div class="data-row"><span class="data-key">Total Paid (incl interest)</span><span class="data-val">₹32,79,375</span></div>
-        <div class="data-row"><span class="data-key">Balance as on 10 Apr 2026</span><span class="data-val red">₹2,38,446</span></div>
-        <div class="data-row"><span class="data-key">EMI Start</span><span class="data-val">10 Jun 2021</span></div>
-        <div class="data-row"><span class="data-key">Last Payment Date</span><span class="data-val gold">10 Apr 2026 (₹59,571)</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Loan fully closes</span><span class="data-val green">Apr 2026</span></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">New Toyota Innova Hycross</span><span class="card-tag">TOYATO_CAR_ADVANCE</span></div>
-      <div class="card-body">
-        <div style="padding:16px;background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px;">
-          <div style="font-family:var(--font-display);font-size:18px;color:var(--gold);margin-bottom:4px;">Innova Hycross Hybrid ZX (7S)</div>
-          <div style="font-size:12px;color:var(--text3);">Booked at Lanson Motors Pvt Ltd</div>
-        </div>
-        <div class="data-row"><span class="data-key">Booking Dealer</span><span class="data-val">Lanson Motors Pvt Ltd</span></div>
-        <div class="data-row"><span class="data-key">Advance Paid</span><span class="data-val gold">₹50,000</span></div>
-        <div class="data-row"><span class="data-key">Payment Date</span><span class="data-val">26 August 2025</span></div>
-        <div class="data-row"><span class="data-key">Receipt No.</span><span class="data-val mono">REC251001680 / 26/08/2025</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Status</span><span class="data-val"><span class="badge badge-amber">Advance Booked</span></span></div>
-        <div style="margin-top:14px;padding:10px 12px;background:var(--blue-dim);border-radius:var(--radius-sm);border:1px solid rgba(96,165,250,0.2)">
-          <div style="font-size:11px;color:var(--blue);">Note: HDFC Toyota Car Loan sheet is empty — no loan taken yet. Pending loan arrangement.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ AGRICULTURE ══════════════════ -->
-<div id="agriculture" class="panel">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Agriculture <em>Income</em></div>
-      <div class="page-subtitle">Mango &amp; crop sales · Tax exempt · Used for slab computation only</div>
-    </div>
-  </div>
-
-  <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">Gross Agricultural Income</div><div class="kpi-value gold">₹7,20,300</div><div class="kpi-sub">FY 2025-26</div></div>
-    <div class="kpi-card"><div class="kpi-label">Deposited into Bank</div><div class="kpi-value teal">₹5,76,500</div><div class="kpi-sub">Cash + Cheque</div></div>
-    <div class="kpi-card"><div class="kpi-label">Cash in hand / Expenses</div><div class="kpi-value">₹1,43,800</div><div class="kpi-sub">Labour / sundry</div></div>
-    <div class="kpi-card"><div class="kpi-label">IT Treatment</div><div class="kpi-value green">Exempt</div><div class="kpi-sub">Section 10(1) of IT Act</div></div>
-  </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-header"><span class="card-title">Buyer-wise Agriculture Income — FY 2025-26</span><span class="card-tag">AGRICULTURE Sheet</span></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>S.No</th><th>Date</th><th>Buyer / Party</th><th>Produce</th><th style="text-align:right">Amount (₹)</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">1</td><td class="mono">01/06/2025</td><td>Srinivasan</td><td>Mango</td><td class="num">52,000</td><td style="font-size:11px;color:var(--text3)">Cash receipt</td></tr>
-          <tr><td class="mono">2</td><td class="mono">Various</td><td>Murugesan (multiple)</td><td>Crop</td><td class="num">~3,47,800</td><td style="font-size:11px;color:var(--text3)">Multiple dates Jul 2025</td></tr>
-          <tr><td class="mono">3</td><td class="mono">02/07/2025</td><td>Masilamani</td><td>Crop</td><td class="num">51,000</td><td style="font-size:11px;color:var(--text3)">GPay ₹50,000</td></tr>
-          <tr><td class="mono">4</td><td class="mono">02/07/2025</td><td>Vinith</td><td>Crop</td><td class="num">54,000</td><td style="font-size:11px;color:var(--text3)">GPay ₹49,000</td></tr>
-          <tr><td class="mono">5</td><td class="mono">03/07/2025</td><td>Arumugam</td><td>Crop</td><td class="num">41,000</td><td style="font-size:11px;color:var(--text3)">GPay ₹47,000</td></tr>
-          <tr><td class="mono">6</td><td class="mono">09/07/2025</td><td>Cash / Sundry Party</td><td>Crop</td><td class="num">53,000</td><td style="font-size:11px;color:var(--text3)">Cash</td></tr>
-          <tr class="total-row"><td colspan="4"><strong>GTOTAL</strong></td><td class="num">7,20,300</td><td></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
   <div class="card">
-    <div class="card-header"><span class="card-title">IT Notes on Agriculture Income</span><span class="card-tag">Sec 10(1)</span></div>
+    <div class="card-hd"><span class="card-title">Payment Heatmap — All Properties</span><span class="card-tag">Click to Toggle Paid Status</span></div>
     <div class="card-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div style="padding:14px;background:var(--green-dim);border-radius:var(--radius-sm);border:1px solid rgba(74,222,128,0.2)">
-          <div style="font-family:var(--font-mono);font-size:10px;color:var(--green);letter-spacing:0.08em;margin-bottom:6px">EXEMPT TREATMENT</div>
-          <div style="font-size:12px;color:var(--text2)">Agriculture income is completely exempt under Section 10(1). It does NOT form part of total income for tax purposes.</div>
-        </div>
-        <div style="padding:14px;background:var(--amber-dim);border-radius:var(--radius-sm);border:1px solid rgba(251,191,36,0.2)">
-          <div style="font-family:var(--font-mono);font-size:10px;color:var(--amber);letter-spacing:0.08em;margin-bottom:6px">PARTIAL INTEGRATION</div>
-          <div style="font-size:12px;color:var(--text2)">Agriculture income of ₹7,20,300 is added to non-agricultural income to determine the rate of tax applicable (higher slab rate). Certificate required for all amounts including expenses.</div>
-        </div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px;font-size:9px;font-family:var(--font-m);color:var(--text3)">
+        <span>APR</span><span>MAY</span><span>JUN</span><span>JUL</span><span>AUG</span><span>SEP</span><span>OCT</span><span>NOV</span><span>DEC</span><span>JAN</span><span>FEB</span><span>MAR</span>
       </div>
+      <div id="monthHeatmap"></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════ CAPITAL ACCOUNTS ══════════════════ -->
-<div id="capital" class="panel">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Capital <em>Accounts</em></div>
-      <div class="page-subtitle">Building construction expenditure · Pearl Garden · New Age Builders</div>
-    </div>
-  </div>
-
+<!-- ── TAX COMPUTATION ── -->
+<div id="tax" class="panel">
+  <div class="page-hd"><div><div class="page-title">Tax <em>Computation</em></div><div class="page-sub">Live calculated · changes when you edit income data</div></div></div>
   <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">TNY Building (Pearl Garden)</div><div class="kpi-value gold">₹1.07Cr</div><div class="kpi-sub">Total construction cost</div></div>
-    <div class="kpi-card"><div class="kpi-label">Madhavaram Building</div><div class="kpi-value teal">₹3.39Cr</div><div class="kpi-sub">New Age + Shyam Ind</div></div>
-    <div class="kpi-card"><div class="kpi-label">Vaikkakaran St (19)</div><div class="kpi-value">₹55.00L</div><div class="kpi-sub">Pearl Garden + Lift</div></div>
-    <div class="kpi-card"><div class="kpi-label">Approx Market Value</div><div class="kpi-value green">₹2.96Cr</div><div class="kpi-sub">Madhavaram (2018 est)</div></div>
+    <div class="kpi"><div class="kpi-label">Net HP Income</div><div class="kpi-value" id="tc-hp">—</div><div class="kpi-sub">After Sec 24 deductions</div></div>
+    <div class="kpi"><div class="kpi-label">Taxable Income</div><div class="kpi-value" id="tc-taxable" style="color:var(--gold)">—</div><div class="kpi-sub">All heads combined</div></div>
+    <div class="kpi"><div class="kpi-label">Total Tax Due</div><div class="kpi-value" id="tc-tax" style="color:var(--red)">—</div><div class="kpi-sub">Incl cess</div></div>
+    <div class="kpi"><div class="kpi-label">Balance After TDS</div><div class="kpi-value" id="tc-balance" style="color:var(--amber)">—</div><div class="kpi-sub">Net payable</div></div>
   </div>
+  <div class="g2">
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Slab-wise Tax Calculation</span><span class="card-tag">Old Regime · Sr Citizen</span></div>
+      <div class="card-body" id="slabCalc"></div>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Income Computation</span><span class="card-tag">IT Return Summary</span></div>
+      <div class="card-body" id="incomeComp"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Tax Optimisation Checklist</span><span class="card-tag">Planning Levers</span></div>
+    <div class="tw"><table>
+      <thead><tr><th>Section</th><th>Description</th><th style="text-align:right">Max Limit</th><th style="text-align:right">Claimed</th><th>Saving</th><th>Action</th></tr></thead>
+      <tbody id="optimTable"></tbody>
+    </table></div>
+  </div>
+</div>
 
-  <div class="grid-3">
-    <div class="card">
-      <div class="card-header"><span class="card-title">TNY Building A/C</span><span class="card-tag">TNY_BUILDING_AC</span></div>
-      <div class="card-body">
-        <div class="data-row"><span class="data-key">Builder</span><span class="data-val">Pearl Garden Constructions P Ltd</span></div>
-        <div class="data-row"><span class="data-key">Total Bill (Const)</span><span class="data-val">₹90,86,260</span></div>
-        <div class="data-row"><span class="data-key">Lift (Prof Elevators)</span><span class="data-val">₹8,26,000</span></div>
-        <div class="data-row"><span class="data-key">Total Expenditure</span><span class="data-val gold">₹1,07,54,830</span></div>
-        <div class="data-row"><span class="data-key">Payments to Pearl Garden</span><span class="data-val">₹1,07,38,260</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Balance Due</span><span class="data-val green">₹0</span></div>
-      </div>
+<!-- ── GST ── -->
+<div id="gst" class="panel">
+  <div class="page-hd"><div><div class="page-title">GST &amp; <em>Service Tax</em></div><div class="page-sub">18% on commercial rent · quarterly filing · auto-computed</div></div></div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total Rent Billed</div><div class="kpi-value" id="gst-rent" style="color:var(--gold)">—</div><div class="kpi-sub">GST-applicable properties</div></div>
+    <div class="kpi"><div class="kpi-label">Total GST Collected</div><div class="kpi-value" id="gst-total" style="color:var(--teal)">—</div><div class="kpi-sub">@ 18% commercial</div></div>
+    <div class="kpi"><div class="kpi-label">Q1 (Apr–Jun)</div><div class="kpi-value" id="gst-q1">—</div><div class="kpi-sub">Due 20 Jul</div></div>
+    <div class="kpi"><div class="kpi-label">Q2 (Jul–Sep)</div><div class="kpi-value" id="gst-q2">—</div><div class="kpi-sub">Due 20 Oct</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Quarterly GST — All Properties</span><span class="card-tag">GSTR-1 / 3B</span></div>
+    <div class="tw"><table id="gstTable">
+      <thead><tr>
+        <th>Property</th><th>Tenant</th>
+        <th style="text-align:right">Q1 Rent</th><th style="text-align:right">Q1 GST</th>
+        <th style="text-align:right">Q2 Rent</th><th style="text-align:right">Q2 GST</th>
+        <th style="text-align:right">Q3 Rent</th><th style="text-align:right">Q3 GST</th>
+        <th style="text-align:right">Q4 Rent</th><th style="text-align:right">Q4 GST</th>
+        <th style="text-align:right">Annual</th><th style="text-align:right">Total GST</th>
+      </tr></thead>
+      <tbody id="gstTableBody"></tbody>
+    </table></div>
+  </div>
+  <div class="g2">
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">GST by Quarter</span><span class="card-tag">Bar Chart</span></div>
+      <div class="card-body"><div class="chart-wrap" style="height:210px"><canvas id="gstQBar"></canvas></div></div>
     </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">Madhavaram Building A/C</span><span class="card-tag">MADHAVRAM_BUILDING_AC</span></div>
-      <div class="card-body">
-        <div class="data-row"><span class="data-key">Builder (Main)</span><span class="data-val">New Age Builders</span></div>
-        <div class="data-row"><span class="data-key">Shutters &amp; Gates</span><span class="data-val">Shyam Industries</span></div>
-        <div class="data-row"><span class="data-key">Construction Bills</span><span class="data-val">₹3,10,00,000</span></div>
-        <div class="data-row"><span class="data-key">Gates (Jana Decor)</span><span class="data-val">₹15,72,291</span></div>
-        <div class="data-row"><span class="data-key">Shyam Industries</span><span class="data-val">₹13,51,820</span></div>
-        <div class="data-row"><span class="data-key">Total</span><span class="data-val gold">₹3,39,24,111</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Market Value (2018)</span><span class="data-val green">₹2,95,75,400</span></div>
-      </div>
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Filing Due Dates</span><span class="card-tag">GSTR-3B</span></div>
+      <div class="card-body" id="gstDueDates"></div>
     </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">Vaikkakaran St A/C</span><span class="card-tag">VAIKKAKARAN_ST_AC</span></div>
-      <div class="card-body">
-        <div class="data-row"><span class="data-key">Address</span><span class="data-val">19 Vaikkakaran Street</span></div>
-        <div class="data-row"><span class="data-key">Demolishing (Corp)</span><span class="data-val">₹92,500</span></div>
-        <div class="data-row"><span class="data-key">Lift (Prof Elevators)</span><span class="data-val">₹7,00,000 (Full paid)</span></div>
-        <div class="data-row"><span class="data-key">Pearl Garden Const.</span><span class="data-val">₹47,07,500</span></div>
-        <div class="data-row"><span class="data-key">Total Paid</span><span class="data-val gold">₹55,00,000</span></div>
-        <div class="data-row" style="border:none"><span class="data-key">Last Payment</span><span class="data-val">₹5L — Nov 2023</span></div>
-      </div>
+  </div>
+</div>
+
+<!-- ── ADVANCE TAX ── -->
+<div id="advance" class="panel">
+  <div class="page-hd"><div><div class="page-title">Advance <em>Tax</em></div><div class="page-sub">Sec 208 obligation · 4 installments · avoid 1% interest u/s 234B/C</div></div></div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total Advance Tax</div><div class="kpi-value" id="at-total" style="color:var(--red)">—</div><div class="kpi-sub">= Net tax liability</div></div>
+    <div class="kpi"><div class="kpi-label">Due by 15 Jun (15%)</div><div class="kpi-value" id="at-q1" style="color:var(--amber)">—</div></div>
+    <div class="kpi"><div class="kpi-label">Due by 15 Sep (45%)</div><div class="kpi-value" id="at-q2" style="color:var(--amber)">—</div><div class="kpi-sub">Cumulative</div></div>
+    <div class="kpi"><div class="kpi-label">Due by 15 Dec (75%)</div><div class="kpi-value" id="at-q3" style="color:var(--amber)">—</div><div class="kpi-sub">Cumulative</div></div>
+  </div>
+  <div class="g2">
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Payment Schedule</span><span class="card-tag">Sec 211</span></div>
+      <div class="card-body"><div class="timeline" id="advanceTl"></div></div>
     </div>
+    <div class="card" style="margin:0">
+      <div class="card-hd"><span class="card-title">Installment Breakdown</span><span class="card-tag">Chart</span></div>
+      <div class="card-body"><div class="chart-wrap" style="height:220px"><canvas id="atBar"></canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DEDUCTIONS ── -->
+<div id="deductions" class="panel">
+  <div class="page-hd"><div><div class="page-title">Deductions &amp; <em>Exemptions</em></div><div class="page-sub">Edit deduction amounts — dashboard recalculates instantly</div></div></div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Chapter VI-A Deductions</span><span class="card-tag">Editable</span></div>
+    <div class="card-body" id="deductionsBody"></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Tax Impact of Deductions</span><span class="card-tag">Live computed</span></div>
+    <div class="card-body" id="deductionImpact"></div>
+  </div>
+</div>
+
+<!-- ── SALARY ── -->
+<div id="salary" class="panel">
+  <div class="page-hd"><div><div class="page-title">Partner <em>Salary</em></div><div class="page-sub">Premier Marketing · Edit monthly amounts</div></div></div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Gross Salary</div><div class="kpi-value" id="sal-gross" style="color:var(--gold)">—</div><div class="kpi-sub">FY 2025-26</div></div>
+    <div class="kpi"><div class="kpi-label">TDS Deducted</div><div class="kpi-value" id="sal-tds" style="color:var(--red)">—</div><div class="kpi-sub">@ 10% on salary</div></div>
+    <div class="kpi"><div class="kpi-label">Net Received</div><div class="kpi-value" id="sal-net" style="color:var(--green)">—</div><div class="kpi-sub">Into TMB SB A/C</div></div>
+    <div class="kpi"><div class="kpi-label">Monthly Average</div><div class="kpi-value" id="sal-avg">—</div><div class="kpi-sub">Per month</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Month-wise Salary</span><span class="card-tag">Click to Edit</span></div>
+    <div class="card-body" id="salaryMonthBody"></div>
+  </div>
+</div>
+
+<!-- ── AGRICULTURE ── -->
+<div id="agri" class="panel">
+  <div class="page-hd"><div><div class="page-title">Agriculture <em>Income</em></div><div class="page-sub">Mango &amp; crop sales · Sec 10(1) exempt · partial integration method</div></div></div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Gross Receipts</div><div class="kpi-value" id="ag-gross" style="color:var(--gold)">—</div></div>
+    <div class="kpi"><div class="kpi-label">Deposited in Bank</div><div class="kpi-value" id="ag-bank" style="color:var(--teal)">—</div></div>
+    <div class="kpi"><div class="kpi-label">Cash / Expenses</div><div class="kpi-value" id="ag-cash">—</div></div>
+    <div class="kpi"><div class="kpi-label">IT Treatment</div><div class="kpi-value" style="color:var(--green);font-size:18px">Exempt</div><div class="kpi-sub">Sec 10(1)</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Agriculture Income Details</span><span class="card-tag">Editable</span></div>
+    <div class="card-body" id="agriBody"></div>
   </div>
 </div>
 
@@ -1411,159 +534,653 @@ td.prop-name { color: var(--text); font-weight: 500; }
 </div>
 
 <script>
+// ─── CONFIG ───────────────────────────────────────────
+// All GitHub access is via the Render proxy — no secrets in this file
+const PROXY_URL = 'https://portfolio-proxy-6ezf.onrender.com';
+const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
+const MO = ['APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB','MAR'];
+
+// ─── STATE ────────────────────────────────────────────
+let D = null;        // live data object
+let fileSha = null;  // GitHub file SHA for updates
+let chartReg = {};   // Chart.js instances registry
+let editMode = false;
+let pendingChanges = false;
+
+// ─── GITHUB SYNC ──────────────────────────────────────
+async function loadData(forceRefresh = false) {
+  setSyncStatus('loading', 'Fetching...');
+  try {
+    const url = PROXY_URL + '/finance' + (forceRefresh ? '?t=' + Date.now() : '');
+    const res = await fetch(url, { method: 'GET' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    D = await res.json();
+    setSyncStatus('ok', 'Live · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
+    render();
+    document.getElementById('loadingOverlay').style.display = 'none';
+  } catch(e) {
+    setSyncStatus('err', 'Error — retry');
+    document.getElementById('loadingOverlay').style.display = 'none';
+    showToast('Failed to load data: ' + e.message, 'err');
+  }
+}
+
+async function fetchSha() {
+  // SHA is managed server-side by the Render proxy — not needed in client
+}
+
+async function saveToGitHub() {
+  setSyncStatus('saving', 'Saving...');
+  try {
+    D._meta.lastUpdated = new Date().toISOString().split('T')[0];
+
+    // Step 1: get current SHA from proxy (needed for GitHub PUT)
+    const getRes = await fetch(PROXY_URL + '/finance/sha');
+    if (!getRes.ok) throw new Error('Could not fetch SHA');
+    const { sha } = await getRes.json();
+
+    // Step 2: send updated data + sha to proxy
+    const payload = {
+      message: 'SMK Finance Dashboard update — ' + new Date().toLocaleString('en-IN'),
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(D, null, 2)))),
+      sha
+    };
+    const putRes = await fetch(PROXY_URL + '/finance', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!putRes.ok) { const e = await putRes.json(); throw new Error(e.error || 'Save failed'); }
+
+    setSyncStatus('ok', 'Saved · ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
+    showToast('✓ Saved to GitHub successfully', 'ok');
+    pendingChanges = false;
+    document.getElementById('income-edit-toolbar').style.display = 'none';
+    editMode = false;
+    render();
+  } catch(e) {
+    setSyncStatus('err', 'Save failed');
+    showToast('Save failed: ' + e.message, 'err');
+  }
+}
+
+function cancelEdit() {
+  editMode = false;
+  pendingChanges = false;
+  document.getElementById('income-edit-toolbar').style.display = 'none';
+  loadData(true);
+}
+
+function openEditor() {
+  showPanel('income', document.querySelector('.nav-item'));
+  editMode = true;
+  document.getElementById('income-edit-toolbar').style.display = 'flex';
+  showToast('Edit mode ON — click any rent value to change it', 'info');
+  renderIncomeTable();
+}
+
+// ─── CALCULATIONS ─────────────────────────────────────
+function calc() {
+  if (!D) return {};
+  const props = D.properties;
+
+  // Rental totals
+  const grossRent = props.reduce((s,p) => s + p.months.reduce((a,m) => a+m.rent, 0), 0);
+  const totalTDS  = props.reduce((s,p) => { const gr = p.months.reduce((a,m)=>a+m.rent,0); return s + gr * p.tdsRate; }, 0);
+  const totalGST  = props.reduce((s,p) => { const gr = p.months.reduce((a,m)=>a+m.rent,0); return s + gr * p.gstRate; }, 0);
+  const repair30  = grossRent * 0.30;
+  const netHP     = grossRent - repair30;
+
+  // Salary
+  const salGross = D.partnerSalary.months.reduce((s,m) => s + m.gross, 0);
+  const salTDS   = D.partnerSalary.months.reduce((s,m) => s + m.tds, 0);
+  const salNet   = salGross - salTDS;
+
+  // Other
+  const otherInc = (D.otherIncome.sbInterest||0) + (D.otherIncome.dividends||0) + (D.otherIncome.depositInterest||0) + (D.otherIncome.pmsIncome||0);
+
+  // Agri
+  const agriGross = D.agricultureIncome.grossReceipts;
+
+  // Taxable income (agri exempt but used for slab)
+  const grossTotal = netHP + salGross + otherInc;
+  const deductions = (D.deductions.section80C||0) + (D.deductions.section80D||0) + (D.deductions.section80TTB||0) + (D.deductions.profTax||0);
+  const taxableIncome = Math.max(0, grossTotal - deductions);
+
+  // Tax computation (old regime, Sr Citizen: 0-3L @0, 3-5L @5%, 5-10L @20%, >10L @30%)
+  // Using partial integration with agri income
+  const totalForRate = taxableIncome + agriGross;
+  function taxOnAmount(inc) {
+    let t = 0;
+    if (inc > 1000000) t += (inc - 1000000) * 0.30;
+    if (inc > 500000)  t += (Math.min(inc, 1000000) - 500000) * 0.20;
+    if (inc > 300000)  t += (Math.min(inc, 500000) - 300000) * 0.05;
+    return t;
+  }
+  const taxOnTotal = taxOnAmount(totalForRate);
+  const taxOnAgri  = taxOnAmount(agriGross);
+  let rawTax = taxOnTotal - taxOnAgri;
+  const cess = rawTax * 0.04;
+  const totalTax = rawTax + cess;
+  const balanceTax = Math.max(0, totalTax - totalTDS - salTDS);
+
+  // GST quarterly
+  const qGST = [0,0,0,0];
+  const qRent = [0,0,0,0];
+  props.forEach(p => {
+    p.months.forEach((m,i) => {
+      const q = i < 3 ? 0 : i < 6 ? 1 : i < 9 ? 2 : 3;
+      qRent[q] += m.rent;
+      qGST[q]  += m.rent * p.gstRate;
+    });
+  });
+
+  // Monthly totals for chart
+  const monthlyTotals = MONTHS.map((_,i) => props.reduce((s,p) => s + (p.months[i]?.rent||0), 0));
+
+  // Paid/unpaid stats
+  let paidMonths = 0, totalMonths = 0, paidAmt = 0, pendAmt = 0;
+  props.forEach(p => p.months.forEach(m => {
+    if (m.rent > 0) { totalMonths++; if (m.paid) { paidMonths++; paidAmt += m.rent; } else { pendAmt += m.rent; } }
+  }));
+
+  // Slab amounts for display
+  const slabs = [
+    { range: 'Nil (upto ₹3,00,000)', pct: '0%', income: Math.min(taxableIncome, 300000), tax: 0, color: '#4a5568' },
+    { range: '5% (₹3L – ₹5L)',   pct: '5%',  income: Math.max(0, Math.min(taxableIncome, 500000)  - 300000), tax: Math.max(0, Math.min(taxableIncome,500000)-300000)*0.05, color: '#60a5fa' },
+    { range: '20% (₹5L – ₹10L)', pct: '20%', income: Math.max(0, Math.min(taxableIncome,1000000) - 500000), tax: Math.max(0, Math.min(taxableIncome,1000000)-500000)*0.20, color: '#fbbf24' },
+    { range: '30% (above ₹10L)',  pct: '30%', income: Math.max(0, taxableIncome - 1000000), tax: Math.max(0, taxableIncome-1000000)*0.30, color: '#f87171' }
+  ];
+
+  // City groupings
+  const cityMap = {};
+  props.forEach(p => {
+    const city = p.location.includes('Tirunelveli') ? 'Tirunelveli'
+               : p.location.includes('OMR') || p.location.includes('Thuraipakkam') ? 'Thuraipakkam/OMR'
+               : p.location.includes('Udangudi') ? 'Udangudi'
+               : p.location.includes('Kandigai') || p.location.includes('Gummidipoondi') ? 'SR Kandigai/GPD'
+               : 'Madhavaram';
+    if (!cityMap[city]) cityMap[city] = 0;
+    cityMap[city] += p.months.reduce((s,m)=>s+m.rent,0);
+  });
+
+  return {
+    grossRent, totalTDS, totalGST, repair30, netHP,
+    salGross, salTDS, salNet, otherInc, agriGross,
+    grossTotal, deductions, taxableIncome,
+    totalTax: Math.round(totalTax * 100) / 100,
+    rawTax: Math.round(rawTax * 100) / 100,
+    cess: Math.round(cess * 100) / 100,
+    balanceTax: Math.round(balanceTax * 100) / 100,
+    qGST, qRent, monthlyTotals, slabs,
+    paidMonths, totalMonths, paidAmt, pendAmt,
+    collectionRate: totalMonths > 0 ? Math.round(paidMonths/totalMonths*100) : 0,
+    cityMap, allTDS: totalTDS + salTDS
+  };
+}
+
+// ─── FORMATTING ───────────────────────────────────────
+function inr(n) {
+  n = Math.round(n);
+  if (Math.abs(n) >= 10000000) return '₹' + (n/10000000).toFixed(2) + 'Cr';
+  if (Math.abs(n) >= 100000)   return '₹' + (n/100000).toFixed(2) + 'L';
+  return '₹' + n.toLocaleString('en-IN');
+}
+function inrFull(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+// ─── RENDER ENGINE ────────────────────────────────────
+function render() {
+  if (!D) return;
+  const C = calc();
+  renderOverview(C);
+  renderIncomeTable();
+  renderProperty(C);
+  renderMonthTracker(C);
+  renderTax(C);
+  renderGST(C);
+  renderAdvanceTax(C);
+  renderDeductions(C);
+  renderSalary();
+  renderAgri();
+  updateNavBadges(C);
+}
+
+function updateNavBadges(C) {
+  document.getElementById('nb-income').textContent = inr(C.grossRent + C.salGross);
+  document.getElementById('nb-tax').textContent = inr(C.totalTax);
+  document.getElementById('nb-gst').textContent = inr(C.totalGST);
+}
+
+function renderOverview(C) {
+  document.getElementById('kpi-taxable').textContent = inr(C.taxableIncome);
+  document.getElementById('kpi-tax').textContent = inr(C.totalTax);
+  document.getElementById('kpi-eff-rate').textContent = (C.taxableIncome > 0 ? (C.totalTax/C.taxableIncome*100).toFixed(1) : 0) + '% eff';
+  document.getElementById('kpi-rental').textContent = inr(C.grossRent);
+  document.getElementById('kpi-rental-sub').textContent = D.properties.length + ' active properties';
+  document.getElementById('kpi-tds').textContent = inr(C.allTDS);
+  document.getElementById('ov-80c').textContent = inrFull(D.deductions.section80C);
+  document.getElementById('ov-agri').textContent = inrFull(C.agriGross);
+  document.getElementById('ov-eff').textContent = (C.taxableIncome > 0 ? (C.totalTax/C.taxableIncome*100).toFixed(1) : 0) + '%';
+
+  // Donut
+  const donutData = [
+    { label: 'House Property', val: C.grossRent, color: '#c9a84c' },
+    { label: 'Partner Salary', val: C.salGross,  color: '#2dd4bf' },
+    { label: 'Agriculture',    val: C.agriGross, color: '#4ade80' },
+    { label: 'Other Income',   val: C.otherInc,  color: '#60a5fa' }
+  ];
+  renderChart('donutChart', 'doughnut', {
+    labels: donutData.map(d=>d.label),
+    datasets: [{ data: donutData.map(d=>d.val), backgroundColor: donutData.map(d=>d.color), borderWidth:0, hoverOffset:4 }]
+  }, { cutout:'68%', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+inrFull(ctx.parsed)}}} });
+  const dl = document.getElementById('donutLegend'); dl.innerHTML = '';
+  donutData.forEach(d => { dl.innerHTML += `<span style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:${d.color};flex-shrink:0"></span>${d.label}</span>`; });
+
+  // Prop bars
+  const sorted = [...D.properties].map(p => ({ name:p.name, val:p.months.reduce((s,m)=>s+m.rent,0) })).sort((a,b)=>b.val-a.val).slice(0,6);
+  const maxV = sorted[0]?.val || 1;
+  const pb = document.getElementById('propBars'); pb.innerHTML = '';
+  sorted.forEach(p => { pb.innerHTML += `<div class="pb-wrap"><div class="pb-hd"><span class="pb-name" style="font-size:11px">${p.name}</span><span class="pb-amt">${inr(p.val)}</span></div><div class="pb-track"><div class="pb-fill" style="width:${(p.val/maxV*100).toFixed(1)}%"></div></div></div>`; });
+
+  // Monthly bar
+  const madShed = D.properties[0]?.months.map(m=>m.rent) || [];
+  const tnyPM   = D.properties[1]?.months.map(m=>m.rent) || [];
+  const h43     = D.properties[2]?.months.map(m=>m.rent) || [];
+  renderChart('monthlyBar', 'bar', {
+    labels: MO,
+    datasets: [
+      { label: 'Madhavaram Shed', data: madShed, backgroundColor:'#c9a84c', stack:'s' },
+      { label: 'TNY PM',          data: tnyPM,   backgroundColor:'#2dd4bf', stack:'s' },
+      { label: 'H43 Flat',        data: h43,     backgroundColor:'#7c6caf', stack:'s' }
+    ]
+  }, {
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.y)}}},
+    scales:{x:{ticks:{color:'#4a5568',font:{size:9},maxRotation:0,autoSkip:false},grid:{display:false}},y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/1000)+'K'},grid:{color:'rgba(255,255,255,0.04)'}}}
+  });
+
+  // Tax slab bar
+  renderChart('taxSlabBar', 'bar', {
+    labels: ['0% (0–3L)', '5% (3–5L)', '20% (5–10L)', '30% (>10L)'],
+    datasets: [{ data: C.slabs.map(s=>Math.round(s.tax)), backgroundColor: C.slabs.map(s=>s.color), borderWidth:0, borderRadius:4 }]
+  }, {
+    indexAxis:'y',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'Tax: '+inrFull(ctx.parsed.x)}}},
+    scales:{x:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8a9bb5',font:{size:10}},grid:{display:false}}}
+  });
+}
+
+function renderIncomeTable() {
+  const tbody = document.getElementById('incomeTableBody'); tbody.innerHTML = '';
+  let totGross=0, totGST=0, totTDS=0, totNet=0;
+  D.properties.forEach((p,idx) => {
+    const gr  = p.months.reduce((s,m)=>s+m.rent,0);
+    const gst = gr * p.gstRate;
+    const tds = gr * p.tdsRate;
+    const net = gr - tds;
+    totGross+=gr; totGST+=gst; totTDS+=tds; totNet+=net;
+    const paidCount = p.months.filter(m=>m.rent>0&&m.paid).length;
+    const totalRent = p.months.filter(m=>m.rent>0).length;
+    const status = gr===0?'<span class="badge br">NIL</span>':totalRent===12?'<span class="badge bg">Active 12M</span>':'<span class="badge ba">'+paidCount+'/'+totalRent+' Months</span>';
+    const rentCell = editMode
+      ? `<td class="num"><span class="editable" contenteditable="true" data-pid="${p.id}" onblur="onRentEdit(this)">${Math.round(gr).toLocaleString('en-IN')}</span></td>`
+      : `<td class="num">${inrFull(gr)}</td>`;
+    tbody.innerHTML += `<tr>
+      <td style="color:var(--text3);font-family:var(--font-m);font-size:10px">${String(idx+1).padStart(2,'0')}</td>
+      <td class="prop-name">${p.emoji} ${p.name}</td>
+      <td style="color:var(--text2)">${p.tenant}</td>
+      <td>${p.type==='commercial'?'<span class="badge bb">Commercial</span>':'<span class="badge bgold">Residential</span>'}</td>
+      ${rentCell}
+      <td class="num">${gst>0?inrFull(gst):'—'}</td>
+      <td class="num" style="color:var(--red)">${tds>0?inrFull(tds):'—'}</td>
+      <td class="num">${inrFull(net)}</td>
+      <td>${status}</td>
+    </tr>`;
+  });
+  tbody.innerHTML += `<tr class="total-row"><td colspan="4">Total House Property</td><td class="num">${inrFull(totGross)}</td><td class="num">${inrFull(totGST)}</td><td class="num">${inrFull(totTDS)}</td><td class="num">${inrFull(totNet)}</td><td></td></tr>`;
+
+  // Income source KPIs
+  const C = calc();
+  document.getElementById('is-hp').textContent = inr(C.grossRent);
+  document.getElementById('is-sal').textContent = inr(C.salGross);
+  document.getElementById('is-agri').textContent = inr(C.agriGross);
+  document.getElementById('is-other').textContent = inr(C.otherInc);
+
+  // Salary card
+  document.getElementById('salaryCard').innerHTML = `
+    <div class="dr"><span class="dk">Gross Salary</span><span class="dv gold">${inrFull(C.salGross)}</span></div>
+    <div class="dr"><span class="dk">TDS Deducted (10%)</span><span class="dv red">${inrFull(C.salTDS)}</span></div>
+    <div class="dr"><span class="dk">Net Received</span><span class="dv green">${inrFull(C.salNet)}</span></div>
+    <div class="dr" style="border:none"><span class="dk">Source</span><span class="dv">Premier Marketing</span></div>`;
+
+  // Other income card
+  document.getElementById('otherIncomeCard').innerHTML = `
+    <div class="dr"><span class="dk">SB Account Interest</span><span class="dv">${inrFull(D.otherIncome.sbInterest||0)}</span></div>
+    <div class="dr"><span class="dk">Dividends</span><span class="dv">${inrFull(D.otherIncome.dividends||0)}</span></div>
+    <div class="dr"><span class="dk">Deposit Interest</span><span class="dv">${inrFull(D.otherIncome.depositInterest||0)}</span></div>
+    <div class="dr"><span class="dk">PMS Income</span><span class="dv">${inrFull(D.otherIncome.pmsIncome||0)}</span></div>
+    <div class="dr" style="border:none"><span class="dk">Total Other Income</span><span class="dv gold">${inrFull(C.otherInc)}</span></div>`;
+}
+
+function onRentEdit(el) {
+  const pid = el.dataset.pid;
+  const newVal = parseFloat(el.textContent.replace(/,/g,'')) || 0;
+  const prop = D.properties.find(p=>p.id===pid);
+  if (!prop) return;
+  // Distribute evenly across all months
+  const activeMonths = prop.months.filter(m=>m.rent>0).length || 12;
+  const perMonth = newVal / activeMonths;
+  prop.months.forEach(m => { if (m.rent > 0) m.rent = perMonth; });
+  pendingChanges = true;
+  document.getElementById('income-edit-toolbar').style.display = 'flex';
+  const C = calc();
+  renderIncomeTable();
+  updateOverviewKPIs(C);
+  updateNavBadges(C);
+}
+
+function updateOverviewKPIs(C) {
+  document.getElementById('kpi-taxable').textContent = inr(C.taxableIncome);
+  document.getElementById('kpi-tax').textContent = inr(C.totalTax);
+  document.getElementById('kpi-rental').textContent = inr(C.grossRent);
+  document.getElementById('kpi-tds').textContent = inr(C.allTDS);
+}
+
+function renderProperty(C) {
+  document.getElementById('hp-gross').textContent = inr(C.grossRent);
+  document.getElementById('hp-repair').textContent = inr(C.repair30);
+  document.getElementById('hp-net').textContent = inr(C.netHP);
+  document.getElementById('hp-tds').textContent = inr(C.totalTDS);
+
+  const tbody = document.getElementById('hpTableBody'); tbody.innerHTML = '';
+  let tg=0, tr30=0, tn=0, ttds=0;
+  D.properties.forEach(p => {
+    const gr = p.months.reduce((s,m)=>s+m.rent,0);
+    const r30 = gr * 0.30;
+    const net = gr - r30;
+    const tds = gr * p.tdsRate;
+    tg+=gr; tr30+=r30; tn+=net; ttds+=tds;
+    tbody.innerHTML += `<tr>
+      <td class="prop-name">${p.emoji} ${p.name}</td>
+      <td style="color:var(--text2)">${p.tenant}</td>
+      <td style="color:var(--text2);font-size:11px">${p.location}</td>
+      <td class="num">${inrFull(gr)}</td>
+      <td class="num" style="color:var(--red)">${inrFull(r30)}</td>
+      <td class="num" style="color:var(--gold)">${inrFull(net)}</td>
+      <td class="num" style="color:var(--green)">${tds>0?inrFull(tds):'—'}</td>
+      <td>${p.type==='commercial'?'<span class="badge bb">Comm</span>':'<span class="badge bgold">Resi</span>'}</td>
+    </tr>`;
+  });
+  tbody.innerHTML += `<tr class="total-row"><td colspan="3">TOTAL</td><td class="num">${inrFull(tg)}</td><td class="num">${inrFull(tr30)}</td><td class="num">${inrFull(tn)}</td><td class="num">${inrFull(ttds)}</td><td></td></tr>`;
+
+  // City donut
+  const cities = Object.entries(C.cityMap);
+  const cityColors = ['#c9a84c','#2dd4bf','#7c6caf','#60a5fa','#f87171'];
+  renderChart('cityDonut','doughnut',{
+    labels:cities.map(c=>c[0]),
+    datasets:[{data:cities.map(c=>Math.round(c[1])),backgroundColor:cityColors.slice(0,cities.length),borderWidth:0}]
+  },{cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.label+': '+inrFull(ctx.parsed)}}}});
+  const cb = document.getElementById('cityBars'); cb.innerHTML='';
+  const maxC = Math.max(...cities.map(c=>c[1]));
+  cities.sort((a,b)=>b[1]-a[1]).forEach((c,i) => { cb.innerHTML += `<div class="pb-wrap"><div class="pb-hd"><span class="pb-name" style="font-size:11px">${c[0]}</span><span class="pb-amt">${inr(c[1])}</span></div><div class="pb-track"><div class="pb-fill" style="width:${(c[1]/maxC*100).toFixed(1)}%;background:${cityColors[i]}"></div></div></div>`; });
+
+  // Type donut
+  const commRent = D.properties.filter(p=>p.type==='commercial').reduce((s,p)=>s+p.months.reduce((a,m)=>a+m.rent,0),0);
+  const resiRent = D.properties.filter(p=>p.type==='residential').reduce((s,p)=>s+p.months.reduce((a,m)=>a+m.rent,0),0);
+  renderChart('typeDonut','doughnut',{
+    labels:['Commercial','Residential'],
+    datasets:[{data:[Math.round(commRent),Math.round(resiRent)],backgroundColor:['#2dd4bf','#c9a84c'],borderWidth:0}]
+  },{cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.label+': '+inrFull(ctx.parsed)}}}});
+  document.getElementById('typeDetails').innerHTML=`
+    <div class="dr"><span class="dk">Commercial</span><span class="dv" style="color:#2dd4bf">${inrFull(commRent)}</span></div>
+    <div class="dr" style="border:none"><span class="dk">Residential</span><span class="dv" style="color:#c9a84c">${inrFull(resiRent)}</span></div>`;
+}
+
+function renderMonthTracker(C) {
+  document.getElementById('mt-paid').textContent = C.paidMonths + '/' + C.totalMonths;
+  document.getElementById('mt-recd').textContent = inr(C.paidAmt);
+  document.getElementById('mt-pend').textContent = inr(C.pendAmt);
+  document.getElementById('mt-rate').textContent = C.collectionRate + '%';
+
+  const hm = document.getElementById('monthHeatmap'); hm.innerHTML = '';
+  D.properties.forEach(p => {
+    const gr = p.months.reduce((s,m)=>s+m.rent,0);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:180px repeat(12,1fr);gap:3px;margin-bottom:3px;align-items:center';
+    row.innerHTML = `<div style="font-size:11px;color:var(--text);padding-right:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.emoji} ${p.name}</div>`;
+    p.months.forEach((m,i) => {
+      const cls = m.rent === 0 ? 'zero' : m.paid ? 'paid' : 'unpaid';
+      const cell = document.createElement('div');
+      cell.className = 'month-cell ' + cls;
+      cell.innerHTML = `${MO[i]}<span class="tooltip">${p.name} — ${MONTHS[i]}<br>${m.rent>0?inrFull(m.rent):'No rent'} · ${m.paid?'✓ Paid':'Pending'}</span>`;
+      cell.onclick = () => { m.paid = !m.paid; renderMonthTracker(calc()); setSyncStatus('saving','Unsaved'); document.getElementById('income-edit-toolbar').style.display='flex'; pendingChanges=true; editMode=true; };
+      row.appendChild(cell);
+    });
+    hm.appendChild(row);
+  });
+}
+
+function renderTax(C) {
+  document.getElementById('tc-hp').textContent = inr(C.netHP);
+  document.getElementById('tc-taxable').textContent = inr(C.taxableIncome);
+  document.getElementById('tc-tax').textContent = inr(C.totalTax);
+  document.getElementById('tc-balance').textContent = inr(C.balanceTax);
+
+  // Slab calc
+  document.getElementById('slabCalc').innerHTML = C.slabs.map(s => `
+    <div class="slab-row">
+      <div class="slab-range-box"><div style="font-size:12px;color:var(--text)">${s.range}</div><div style="font-size:10px;color:var(--text3)">${inrFull(s.income)} taxable</div></div>
+      <div class="slab-pct" style="color:${s.color}">${s.pct}</div>
+      <div class="slab-bar-wrap"><div class="slab-bar"><div class="slab-bar-fill" style="width:${C.rawTax>0?(s.tax/C.rawTax*100).toFixed(1):0}%;background:${s.color}"></div></div></div>
+      <div class="slab-amt" style="color:${s.color}">${s.tax>0?inrFull(s.tax):'—'}</div>
+    </div>`).join('') + `
+    <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:12px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-family:var(--font-m);font-size:11px;color:var(--text3)">BASE TAX + CESS 4%</span>
+      <span style="font-family:var(--font-d);font-size:22px;color:var(--gold)">${inrFull(C.totalTax)}</span>
+    </div>`;
+
+  // Income comp
+  document.getElementById('incomeComp').innerHTML = `
+    <div class="dr"><span class="dk">Net HP Income (after 30%)</span><span class="dv">${inrFull(C.netHP)}</span></div>
+    <div class="dr"><span class="dk">Partner Salary (PM)</span><span class="dv">${inrFull(C.salGross)}</span></div>
+    <div class="dr"><span class="dk">Agriculture Income (Exempt)</span><span class="dv green">${inrFull(C.agriGross)}</span></div>
+    <div class="dr"><span class="dk">Other Income</span><span class="dv">${inrFull(C.otherInc)}</span></div>
+    <div class="dr" style="border-top:1px solid var(--border2)"><span class="dk">Gross Total Income</span><span class="dv">${inrFull(C.grossTotal)}</span></div>
+    <div class="dr"><span class="dk">Less: All Deductions</span><span class="dv red">− ${inrFull(C.deductions)}</span></div>
+    <div class="dr"><span class="dk">Net Taxable Income</span><span class="dv gold">${inrFull(C.taxableIncome)}</span></div>
+    <div class="dr"><span class="dk">Tax (old regime)</span><span class="dv red">${inrFull(C.rawTax)}</span></div>
+    <div class="dr"><span class="dk">Education Cess 4%</span><span class="dv red">${inrFull(C.cess)}</span></div>
+    <div class="dr"><span class="dk">TDS Credit (rent + salary)</span><span class="dv green">− ${inrFull(C.allTDS)}</span></div>
+    <div class="dr" style="border:none"><span class="dk">Net Advance Tax Payable</span><span class="dv" style="color:var(--amber)">${inrFull(C.balanceTax)}</span></div>`;
+
+  // Optim table
+  const rows = [
+    {sec:'80C',desc:'LIC, PPF, ELSS (max ₹1.5L)',limit:150000,claimed:D.deductions.section80C,status:'bg'},
+    {sec:'80D',desc:'Medical Insurance (Sr Citizen max ₹50K)',limit:50000,claimed:D.deductions.section80D,status:D.deductions.section80D>0?'bg':'ba'},
+    {sec:'80TTB',desc:'SB/FD Interest (Sr Citizen max ₹50K)',limit:50000,claimed:D.deductions.section80TTB,status:D.deductions.section80TTB>0?'bg':'ba'},
+    {sec:'Agri',desc:'₹'+inrFull(C.agriGross)+' exempt — partial integration',limit:C.agriGross,claimed:C.agriGross,status:'bg'},
+    {sec:'Advance Tax',desc:'4 installments — avoid 234B/C interest',limit:C.totalTax,claimed:0,status:'ba'},
+  ];
+  const maxDedn = 150000 + 50000 + 50000;
+  const taxSaving = (D.deductions.section80C + D.deductions.section80D + D.deductions.section80TTB) * 0.30;
+  document.getElementById('optimTable').innerHTML = rows.map(r => `
+    <tr>
+      <td style="font-family:var(--font-m);font-size:11px;color:var(--gold)">${r.sec}</td>
+      <td>${r.desc}</td>
+      <td class="num">${inrFull(r.limit)}</td>
+      <td class="num" style="color:${r.claimed>0?'var(--green)':'var(--amber)'}">${inrFull(r.claimed)}</td>
+      <td class="num" style="color:var(--green)">${r.claimed>0?'₹'+Math.round(r.claimed*0.30).toLocaleString('en-IN')+' saved':'—'}</td>
+      <td><span class="badge ${r.status}">${r.claimed>=r.limit&&r.limit>0?'✓ Claimed':'Review'}</span></td>
+    </tr>`).join('');
+}
+
+function renderGST(C) {
+  const gstProps = D.properties.filter(p => p.gstRate > 0);
+  const totalGstRent = gstProps.reduce((s,p)=>s+p.months.reduce((a,m)=>a+m.rent,0),0);
+  const totalGstAmt  = totalGstRent * 0.18;
+  document.getElementById('gst-rent').textContent = inr(totalGstRent);
+  document.getElementById('gst-total').textContent = inr(totalGstAmt);
+  document.getElementById('gst-q1').textContent = inr(C.qGST[0]);
+  document.getElementById('gst-q2').textContent = inr(C.qGST[1]);
+
+  const tbody = document.getElementById('gstTableBody'); tbody.innerHTML = '';
+  let totR=[0,0,0,0], totG=[0,0,0,0];
+  gstProps.forEach(p => {
+    const qR=[0,0,0,0], qG=[0,0,0,0];
+    p.months.forEach((m,i) => { const q=i<3?0:i<6?1:i<9?2:3; qR[q]+=m.rent; qG[q]+=m.rent*p.gstRate; });
+    qR.forEach((v,i)=>{totR[i]+=v;totG[i]+=v*p.gstRate;});
+    const annR = qR.reduce((s,v)=>s+v,0);
+    const annG = annR * p.gstRate;
+    tbody.innerHTML += `<tr>
+      <td class="prop-name">${p.emoji} ${p.name}</td><td style="color:var(--text2)">${p.tenant}</td>
+      <td class="num">${inrFull(qR[0])}</td><td class="num" style="color:var(--teal)">${inrFull(qG[0])}</td>
+      <td class="num">${inrFull(qR[1])}</td><td class="num" style="color:var(--teal)">${inrFull(qG[1])}</td>
+      <td class="num">${inrFull(qR[2])}</td><td class="num" style="color:var(--teal)">${inrFull(qG[2])}</td>
+      <td class="num">${inrFull(qR[3])}</td><td class="num" style="color:var(--teal)">${inrFull(qG[3])}</td>
+      <td class="num">${inrFull(annR)}</td><td class="num" style="color:var(--gold)">${inrFull(annG)}</td>
+    </tr>`;
+  });
+  const totAnn=totR.reduce((s,v)=>s+v,0), totGann=totAnn*0.18;
+  tbody.innerHTML += `<tr class="total-row"><td colspan="2">Grand Total</td>${totR.map((v,i)=>`<td class="num">${inrFull(v)}</td><td class="num">${inrFull(totG[i])}</td>`).join('')}<td class="num">${inrFull(totAnn)}</td><td class="num">${inrFull(totGann)}</td></tr>`;
+
+  renderChart('gstQBar','bar',{
+    labels:['Q1 Apr–Jun','Q2 Jul–Sep','Q3 Oct–Dec','Q4 Jan–Mar'],
+    datasets:[
+      {label:'Rent',data:C.qRent.map(v=>Math.round(v)),backgroundColor:'#c9a84c',borderRadius:4},
+      {label:'GST',data:C.qGST.map(v=>Math.round(v)),backgroundColor:'#2dd4bf',borderRadius:4}
+    ]
+  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+inrFull(ctx.parsed.y)}}},scales:{x:{ticks:{color:'#4a5568',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}}}});
+
+  document.getElementById('gstDueDates').innerHTML = [
+    {q:'Q1 (Apr–Jun 2025)',due:'20 Jul 2025',amt:C.qGST[0],past:true},
+    {q:'Q2 (Jul–Sep 2025)',due:'20 Oct 2025',amt:C.qGST[1],past:true},
+    {q:'Q3 (Oct–Dec 2025)',due:'20 Jan 2026',amt:C.qGST[2],past:false},
+    {q:'Q4 (Jan–Mar 2026)',due:'20 Apr 2026',amt:C.qGST[3],past:false},
+  ].map(d=>`<div class="dr"><span class="dk">${d.q}<br><span style="font-size:10px;color:var(--text3)">${d.due}</span></span><span class="dv ${d.past?'amber':'green'}">${inrFull(d.amt)}</span></div>`).join('') +
+  `<div class="dr" style="border:none"><span class="dk">Annual Total</span><span class="dv gold">${inrFull(C.qGST.reduce((s,v)=>s+v,0))}</span></div>`;
+}
+
+function renderAdvanceTax(C) {
+  const tax = C.totalTax;
+  const q1 = tax * 0.15, q2c = tax * 0.45, q3c = tax * 0.75;
+  const q2a = q2c - q1, q3a = q3c - q2c, q4a = tax - q3c;
+  document.getElementById('at-total').textContent = inr(tax);
+  document.getElementById('at-q1').textContent = inr(q1);
+  document.getElementById('at-q2').textContent = inr(q2c);
+  document.getElementById('at-q3').textContent = inr(q3c);
+
+  document.getElementById('advanceTl').innerHTML = [
+    {date:'15 JUNE 2025',label:'1st Instalment — 15%',amt:inrFull(q1),note:'Advance: 15% of estimated tax',dot:'filled'},
+    {date:'15 SEPTEMBER 2025',label:'2nd Instalment — 45% cumulative',amt:inrFull(q2a)+' additional ('+inrFull(q2c)+' total)',note:'Pay by this date to avoid interest',dot:'filled'},
+    {date:'15 DECEMBER 2025',label:'3rd Instalment — 75% cumulative',amt:inrFull(q3a)+' additional ('+inrFull(q3c)+' total)',note:'',dot:''},
+    {date:'15 MARCH 2026',label:'Final Instalment — 100%',amt:inrFull(q4a)+' balance',note:'Full tax by 31 March',dot:'grey'},
+  ].map(t=>`<div class="tl-item"><div class="tl-dot ${t.dot}"></div><div class="tl-date">${t.date}</div><div class="tl-label">${t.label}</div><div class="tl-amt">${t.amt}</div>${t.note?`<div class="tl-note">${t.note}</div>`:''}</div>`).join('');
+
+  renderChart('atBar','bar',{
+    labels:['Jun (15%)','Sep (add 30%)','Dec (add 30%)','Mar (add 25%)'],
+    datasets:[{data:[Math.round(q1),Math.round(q2a),Math.round(q3a),Math.round(q4a)],backgroundColor:['#f87171','#fbbf24','#fbbf24','#4ade80'],borderRadius:4,borderWidth:0}]
+  },{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>inrFull(ctx.parsed.y)}}},scales:{x:{ticks:{color:'#4a5568',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#4a5568',font:{size:9},callback:v=>'₹'+(v/100000).toFixed(1)+'L'},grid:{color:'rgba(255,255,255,0.04)'}}}});
+}
+
+function renderDeductions(C) {
+  const deds = [
+    {key:'section80C',  sec:'80C',  label:'LIC / PPF / ELSS / NSC / FD 5yr', max:150000, note:D.deductions.notes80C||''},
+    {key:'section80D',  sec:'80D',  label:'Medical Insurance (Sr Citizen)',     max:50000,  note:D.deductions.notes80D||''},
+    {key:'section80TTB',sec:'80TTB',label:'SB/FD Interest (Sr Citizen)',        max:50000,  note:D.deductions.notes80TTB||''},
+    {key:'profTax',     sec:'Prof Tax',label:'Professional Tax',                max:2500,   note:''},
+  ];
+  document.getElementById('deductionsBody').innerHTML = deds.map(d => `
+    <div class="dr">
+      <div><div class="dk">Sec ${d.sec} — ${d.label}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${d.note} · Max: ${inrFull(d.max)}</div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:10px;color:var(--text3);font-family:var(--font-m)">₹</span>
+        <input type="number" value="${D.deductions[d.key]||0}" min="0" max="${d.max}" step="1000"
+          style="width:110px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 10px;color:var(--gold);font-family:var(--font-m);font-size:12px;text-align:right;outline:none"
+          onchange="D.deductions['${d.key}']=parseInt(this.value)||0; render(); pendingChanges=true; document.getElementById('income-edit-toolbar').style.display='flex'; editMode=true;">
+        <span class="badge ${D.deductions[d.key]>=d.max?'bg':'ba'}">${D.deductions[d.key]>=d.max?'Max':'Partial'}</span>
+      </div>
+    </div>`).join('');
+
+  const totalDedn = deds.reduce((s,d)=>s+(D.deductions[d.key]||0),0);
+  const taxSaving = Math.round(totalDedn * 0.30);
+  document.getElementById('deductionImpact').innerHTML = `
+    <div class="dr"><span class="dk">Total Deductions Claimed</span><span class="dv gold">${inrFull(totalDedn)}</span></div>
+    <div class="dr"><span class="dk">Tax Saved (@ 30%)</span><span class="dv green">${inrFull(taxSaving)}</span></div>
+    <div class="dr"><span class="dk">Max Possible (80C+80D+80TTB)</span><span class="dv">${inrFull(250000)}</span></div>
+    <div class="dr"><span class="dk">Remaining Opportunity</span><span class="dv ${totalDedn<250000?'amber':'green'}">${inrFull(Math.max(0,250000-totalDedn))}</span></div>
+    <div class="dr" style="border:none"><span class="dk">Potential Additional Tax Saving</span><span class="dv green">${inrFull(Math.max(0,250000-totalDedn)*0.30)}</span></div>`;
+}
+
+function renderSalary() {
+  const months = D.partnerSalary.months;
+  const gross = months.reduce((s,m)=>s+m.gross,0);
+  const tds   = months.reduce((s,m)=>s+m.tds,0);
+  document.getElementById('sal-gross').textContent = inr(gross);
+  document.getElementById('sal-tds').textContent   = inr(tds);
+  document.getElementById('sal-net').textContent   = inr(gross - tds);
+  document.getElementById('sal-avg').textContent   = inr(gross/12);
+  document.getElementById('salaryMonthBody').innerHTML = `
+    <table><thead><tr><th>Month</th><th style="text-align:right">Gross (₹)</th><th style="text-align:right">TDS (₹)</th><th style="text-align:right">Net (₹)</th><th>Mode</th></tr></thead><tbody>
+    ${months.map((m,i) => `<tr>
+      <td style="color:var(--text)">${m.month}</td>
+      <td class="num"><input type="number" value="${m.gross}" step="100" style="width:90px;background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--gold);font-family:var(--font-m);font-size:11px;text-align:right;outline:none" onchange="D.partnerSalary.months[${i}].gross=parseInt(this.value)||0;D.partnerSalary.months[${i}].tds=Math.round(parseInt(this.value)*0.10)||0;render();pendingChanges=true;document.getElementById('income-edit-toolbar').style.display='flex';editMode=true;"></td>
+      <td class="num" style="color:var(--red)">${inrFull(m.tds)}</td>
+      <td class="num" style="color:var(--green)">${inrFull(m.gross-m.tds)}</td>
+      <td><span class="badge bb" style="font-size:9px">TMB SB A/C</span></td>
+    </tr>`).join('')}
+    <tr class="total-row"><td>Total</td><td class="num">${inrFull(gross)}</td><td class="num">${inrFull(tds)}</td><td class="num">${inrFull(gross-tds)}</td><td></td></tr>
+    </tbody></table>`;
+}
+
+function renderAgri() {
+  document.getElementById('ag-gross').textContent = inr(D.agricultureIncome.grossReceipts);
+  document.getElementById('ag-bank').textContent  = inr(D.agricultureIncome.bankDeposited);
+  document.getElementById('ag-cash').textContent  = inr(D.agricultureIncome.cashExpenses);
+  document.getElementById('agriBody').innerHTML = `
+    <div class="dr"><span class="dk">Gross Receipts</span>
+      <input type="number" value="${D.agricultureIncome.grossReceipts}" step="1000" style="width:120px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 10px;color:var(--gold);font-family:var(--font-m);font-size:12px;text-align:right;outline:none" onchange="D.agricultureIncome.grossReceipts=parseInt(this.value)||0;D.agricultureIncome.bankDeposited=Math.round(D.agricultureIncome.grossReceipts*0.80);D.agricultureIncome.cashExpenses=D.agricultureIncome.grossReceipts-D.agricultureIncome.bankDeposited;render();pendingChanges=true;document.getElementById('income-edit-toolbar').style.display='flex';editMode=true;">
+    </div>
+    <div class="dr"><span class="dk">Deposited in Bank</span><span class="dv teal">${inrFull(D.agricultureIncome.bankDeposited)}</span></div>
+    <div class="dr"><span class="dk">Cash / Expenses</span><span class="dv">${inrFull(D.agricultureIncome.cashExpenses)}</span></div>
+    <div class="dr"><span class="dk">IT Treatment</span><span class="dv green">Sec 10(1) — Fully Exempt</span></div>
+    <div class="dr"><span class="dk">Used for Slab Rate</span><span class="dv">Partial Integration Method</span></div>
+    <div class="dr" style="border:none"><span class="dk">Notes</span><span class="dv" style="font-size:11px">${D.agricultureIncome.notes}</span></div>`;
+}
+
+// ─── CHART HELPER ─────────────────────────────────────
+function renderChart(id, type, data, options = {}) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  if (chartReg[id]) { chartReg[id].destroy(); }
+  chartReg[id] = new Chart(canvas, { type, data, options: { responsive:true, maintainAspectRatio:false, ...options } });
+}
+
+// ─── UI HELPERS ───────────────────────────────────────
 function showPanel(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  el.classList.add('active');
-  setTimeout(() => {
-    if (id === 'overview') initOverviewCharts();
-    if (id === 'gst') initGstChart();
-    if (id === 'property') initCityPie();
-  }, 50);
+  if (el) el.classList.add('active');
 }
 
-// Property bars
-const propData = [
-  { name: 'Madhavaram Shed (PM)', amt: '₹16,00,000', pct: 100 },
-  { name: 'TNY Tirunelveli (PM)', amt: '₹4,80,000', pct: 30 },
-  { name: 'Thuraipakkam H43', amt: '₹3,60,000', pct: 22.5 },
-  { name: 'KHC TNY Branch', amt: '₹1,60,000', pct: 10 },
-  { name: 'HWI KI Oven Area', amt: '₹1,15,200', pct: 7.2 },
-  { name: 'Others (8 properties)', amt: '₹1,65,108', pct: 10.3 }
-];
-const pb = document.getElementById('propBars');
-propData.forEach(p => {
-  pb.innerHTML += `<div class="prop-bar-wrap">
-    <div class="prop-bar-header"><span class="prop-bar-name">${p.name}</span><span class="prop-bar-amt">${p.amt}</span></div>
-    <div class="prop-bar"><div class="prop-bar-fill" style="width:${p.pct}%"></div></div>
-  </div>`;
-});
-
-let oCharts = false;
-function initOverviewCharts() {
-  if (oCharts) return; oCharts = true;
-
-  // Donut
-  const donutCtx = document.getElementById('donutChart');
-  const donutColors = ['#c9a84c','#2dd4bf','#4ade80','#60a5fa','#f87171'];
-  const donutLabels = ['House Property','Partner Salary','Agriculture (Exempt)','Other Income','TDS/Tax'];
-  const donutData = [2860108, 966664, 720300, 3250, 248080];
-  new Chart(donutCtx, {
-    type: 'doughnut',
-    data: {
-      labels: donutLabels,
-      datasets: [{ data: donutData, backgroundColor: donutColors, borderWidth: 0, hoverOffset: 4 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '68%',
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: ctx => ' ₹' + Math.round(ctx.parsed).toLocaleString('en-IN') }
-      }}
-    }
-  });
-  const dl = document.getElementById('donutLegend');
-  donutLabels.forEach((l,i) => {
-    dl.innerHTML += `<span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#8a9bb5">
-      <span style="width:8px;height:8px;border-radius:2px;background:${donutColors[i]};flex-shrink:0"></span>${l}
-    </span>`;
-  });
-
-  // Monthly bar
-  const mbCtx = document.getElementById('monthlyBar');
-  const months = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
-  new Chart(mbCtx, {
-    type: 'bar',
-    data: {
-      labels: months,
-      datasets: [
-        { label: 'Madhavaram Shed', data: [200000,200000,200000,200000,100000,100000,100000,100000,100000,100000,100000,100000], backgroundColor: '#c9a84c', stack: 's' },
-        { label: 'TNY PM', data: [60000,60000,60000,60000,30000,30000,30000,30000,30000,30000,30000,30000], backgroundColor: '#2dd4bf', stack: 's' },
-        { label: 'H43 Flat', data: [30000,30000,30000,30000,30000,30000,30000,30000,30000,30000,30000,30000], backgroundColor: '#7c6caf', stack: 's' }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: ctx => ctx.dataset.label + ': ₹' + ctx.parsed.y.toLocaleString('en-IN') }
-      }},
-      scales: {
-        x: { ticks: { color: '#4a5568', font: { size: 10 }, maxRotation: 0, autoSkip: false }, grid: { display: false } },
-        y: { ticks: { color: '#4a5568', font: { size: 10 }, callback: v => '₹'+(v/1000)+'K' }, grid: { color: 'rgba(255,255,255,0.04)' } }
-      }
-    }
-  });
-
-  // Tax slab bar
-  const tbCtx = document.getElementById('taxBar');
-  new Chart(tbCtx, {
-    type: 'bar',
-    data: {
-      labels: ['0% (upto ₹3L)', '5% (₹3L–5L)', '20% (₹5L–10L)', '30% (>₹10L)'],
-      datasets: [{ data: [0, 10000, 100000, 1776194], backgroundColor: ['#4a5568','#60a5fa','#fbbf24','#f87171'], borderWidth: 0, borderRadius: 4 }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: ctx => '₹' + ctx.parsed.x.toLocaleString('en-IN') }
-      }},
-      scales: {
-        x: { ticks: { color: '#4a5568', font: { size: 10 }, callback: v => '₹'+(v/100000)+'L' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { color: '#8a9bb5', font: { size: 11 } }, grid: { display: false } }
-      }
-    }
-  });
+function setSyncStatus(state, label) {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  dot.className = 'sync-dot ' + (state === 'ok' ? 'ok' : state === 'saving' ? 'saving' : state === 'err' ? 'err' : '');
+  lbl.textContent = label;
 }
 
-let gstChartDone = false;
-function initGstChart() {
-  if (gstChartDone) return; gstChartDone = true;
-  const ctx = document.getElementById('gstQuarterBar');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Q1 Apr–Jun', 'Q2 Jul–Sep', 'Q3 Oct–Dec', 'Q4 Jan–Mar'],
-      datasets: [
-        { label: 'Rent', data: [1006926, 632026, 444576, 444576], backgroundColor: '#c9a84c', borderRadius: 4 },
-        { label: 'GST', data: [181246, 113764, 80023, 80023], backgroundColor: '#2dd4bf', borderRadius: 4 }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: ctx => ctx.dataset.label + ': ₹' + ctx.parsed.y.toLocaleString('en-IN') }
-      }},
-      scales: {
-        x: { ticks: { color: '#4a5568', font: { size: 11 } }, grid: { display: false } },
-        y: { ticks: { color: '#4a5568', font: { size: 10 }, callback: v => '₹'+(v/100000).toFixed(1)+'L' }, grid: { color: 'rgba(255,255,255,0.04)' } }
-      }
-    }
-  });
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.className = 'toast', 3500);
 }
 
-let cityPieDone = false;
-function initCityPie() {
-  if (cityPieDone) return; cityPieDone = true;
-  const ctx = document.getElementById('cityPie');
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Madhavaram','Tirunelveli','OMR/Thuraipakkam','Udangudi/GPD'],
-      datasets: [{ data: [1772800, 640000, 360000, 30508], backgroundColor: ['#c9a84c','#2dd4bf','#7c6caf','#60a5fa'], borderWidth: 0 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '60%',
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: ctx => ctx.label + ': ₹' + Math.round(ctx.parsed).toLocaleString('en-IN') }
-      }}
-    }
-  });
-}
+// Warn before leaving with unsaved changes
+window.addEventListener('beforeunload', e => { if (pendingChanges) { e.preventDefault(); e.returnValue = ''; } });
 
-// Init on load
-setTimeout(initOverviewCharts, 100);
+// ─── BOOT ─────────────────────────────────────────────
+loadData();
 </script>
 </body>
 </html>
